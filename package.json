@@ -1,0 +1,26 @@
+{
+  "name": "valhalla",
+  "version": "2025.3.15",
+  "description": "Validation library for ClojureScript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jaidetree/valhalla.git"
+  },
+  "keywords": [
+    "clojurescript",
+    "validation"
+  ],
+  "author": "jaidetree",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/jaidetree/valhalla/issues"
+  },
+  "homepage": "https://github.com/jaidetree/valhalla#readme",
+  "devDependencies": {
+    "shadow-cljs": "^2.28.21"
+  }
+}

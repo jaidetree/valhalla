@@ -1,0 +1,17 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src/main"
+  "src/test"]
+
+ :dependencies
+ []
+
+ :builds
+ {:test {:target :node-test
+         :output-to "build/js/node-tests.js"
+         :ns-regexp "-test"
+         :autorun true
+         :compiler-options {:warnings {:invalid-arithmetic false}}
+         :release {:autorun false
+                   :compiler-options {:optimizations :simple
+                                      :elide-asserts false}}}}}
