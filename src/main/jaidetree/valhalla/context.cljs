@@ -29,14 +29,6 @@
   [ctx value]
   (assoc ctx :value value))
 
-(defn update-path
-  [ctx path]
-  (assoc ctx :path path))
-
-(defn append-path
-  [ctx path]
-  (update ctx :path conj path))
-
 (defn raise-error
   [ctx err]
   (let [error (if (string? err)
@@ -60,6 +52,14 @@
      (update-output ctx (:path ctx) output)))
   ([ctx path value]
    (assoc-in ctx (cons :output path) value)))
+
+(defn update-path
+  [ctx path]
+  (assoc ctx :path path))
+
+(defn append-path
+  [ctx path]
+  (update ctx :path conj path))
 
 (defn replace-path
   [ctx path]

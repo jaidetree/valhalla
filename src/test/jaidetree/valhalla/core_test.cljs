@@ -48,7 +48,18 @@
              [:v/error "Expected string, got nil"])))
     (testing "> number"
       (is (= ((v/string) (ctx/create :input 5))
-             [:v/error "Expected string, got 5"])))))
+             [:v/error "Expected string, got 5"]))))
+
+  (testing "Supports custom messages"
+    (testing "Static string"
+      (is (= ((v/string {:message "Value is invalid"})
+              (ctx/create :input "test" :value nil))
+             [:v/error "Value is invalid"])))
+    (testing "functions"
+      (is (= ((v/string {:message (fn [{:keys [value]}]
+                                    (str "Invalid " (pr-str value)))})
+              (ctx/create :input "test" :value nil))
+             [:v/error "Invalid nil"])))))
 
 (deftest number-test
   (testing "Number passes on number inputs"
@@ -88,6 +99,42 @@
     (testing "> string"
       (is (= ((v/string->number) (ctx/create :input "test"))
              [:v/error "Expected numeric string, got \"test\""])))))
+
+(deftest boolean-test
+  (testing "Parses boolean inputs"
+    (testing "> true"
+      (is (= ((v/boolean) (ctx/create :value true :input true))
+             [:v/ok true])))
+
+    (testing "> false"
+      (is (= ((v/boolean) (ctx/create :value false :input false))
+             [:v/ok false]))))
+
+  (testing "Boolean fails on non-boolean inputs"
+    (testing "> nil"
+      (is (= ((v/boolean) (ctx/create :input nil :value nil))
+             [:v/error "Expected boolean, got nil"])))
+    (testing "> string"
+      (is (= ((v/boolean) (ctx/create :input "test"))
+             [:v/error "Expected boolean, got \"test\""])))))
+
+(deftest string->boolean-test
+  (testing "Parses boolean string inputs"
+    (testing "> true"
+      (is (= ((v/string->boolean) (ctx/create :value "true"))
+             [:v/ok true])))
+
+    (testing "> false"
+      (is (= ((v/string->boolean) (ctx/create :value "false"))
+             [:v/ok false]))))
+
+  (testing "string->boolean fails on non-boolean inputs"
+    (testing "> nil"
+      (is (= ((v/string->boolean) (ctx/create :value nil))
+             [:v/error "Expected boolean-string, got nil"])))
+    (testing "> string"
+      (is (= ((v/string->boolean) (ctx/create :value "test"))
+             [:v/error "Expected boolean-string, got \"test\""])))))
 
 (deftest hash-map-test
   (testing "validates a hash-map"

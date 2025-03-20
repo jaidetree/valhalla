@@ -43,7 +43,7 @@
 - [x] Support function-based error messages
 - [x] Write tests for string validation (success cases)
 - [x] Write tests for string validation (failure cases)
-- [ ] Write tests for custom error messages
+- [x] Write tests for custom error messages
 - [x] Verify all string validator tests pass
 
 ### Number and Integer Validators
@@ -52,10 +52,10 @@
 - [x] Verify all number/integer validator tests pass
 
 ### Boolean, Keyword, and Symbol Validators
-- [ ] Implement boolean validator
+- [x] Implement boolean validator
 - [ ] Implement keyword validator
 - [ ] Implement symbol validator
-- [ ] Write tests for boolean validation
+- [x] Write tests for boolean validation
 - [ ] Write tests for keyword validation
 - [ ] Write tests for symbol validation
 - [ ] Verify all boolean/keyword/symbol validator tests pass

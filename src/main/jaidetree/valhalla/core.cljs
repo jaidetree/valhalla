@@ -1,8 +1,9 @@
 (ns jaidetree.valhalla.core
-  (:refer-clojure :exclude [hash-map])
+  (:refer-clojure :exclude [hash-map boolean])
   (:require
    [clojure.core :as cc]
    [clojure.pprint :refer [pprint]]
+   [clojure.string :as s]
    [jaidetree.valhalla.context :as ctx]))
 
 (defn ok
@@ -67,59 +68,84 @@
                              (ctx/raise-errors errors)
                              (fail))))))
 
+(defn- msg-fn
+  [str-or-fn default-fn]
+  (cond
+    (string? str-or-fn) (constantly str-or-fn)
+    (fn? str-or-fn) str-or-fn
+    :else default-fn))
+
 (defn string
   ([] (string {}))
   ([opts]
    (fn [{:keys [value _path] :as context}]
-     (let [message (or (:message opts)
-                       (fn [{:keys [value _path]}]
-                         (str "Expected string, got " (pr-str value))))]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected string, got " (pr-str value))))]
        (if (string? value)
          (ok value)
-         (error (if (fn? message)
-                  (message context)
-                  message)))))))
+         (error (message context)))))))
 
 (defn number
   ([] (number {}))
   ([opts]
    (fn [{:keys [value] :as context}]
-     (let [message (or (:message opts)
-                       (fn [{:keys [value]}]
-                         (str "Expected number, got " (pr-str value))))]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected number, got " (pr-str value))))]
        (if (number? value)
          (ok value)
-         (error (if (fn? message)
-                  (message context)
-                  message)))))))
+         (error (message context)))))))
 
 (defn numeric
   ([] (numeric {}))
   ([opts]
    (fn [{:keys [value] :as context}]
-     (let [message (or (:message opts)
-                       (fn [{:keys [value]}]
-                         (str "Expected numeric string, got " (pr-str value))))
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected numeric string, got " (pr-str value))))
            number-value (js/Number.parseFloat value 10)]
        (if (not (js/Number.isNaN number-value))
          (ok value)
-         (error (if (fn? message)
-                  (message context)
-                  message)))))))
+         (error (message context)))))))
 
 (defn string->number
   ([] (string->number {}))
   ([opts]
    (fn [{:keys [value] :as context}]
-     (let [message (or (:message opts)
-                       (fn [{:keys [value]}]
-                         (str "Expected numeric string, got " (pr-str value))))
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected numeric string, got " (pr-str value))))
            value (js/Number.parseFloat value)]
        (if (not (js/Number.isNaN value))
          (ok value)
-         (error (if (fn? message)
-                  (message context)
-                  message)))))))
+         (error (message context)))))))
+
+(defn boolean
+  ([] (boolean {}))
+  ([opts]
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected boolean, got " (pr-str value))))]
+       (if (boolean? value)
+         (ok value)
+         (error (message context)))))))
+
+(defn string->boolean
+  ([] (string->boolean {}))
+  ([opts]
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected boolean-string, got " (pr-str value))))]
+       (if (not (string? value))
+         (error (message context))
+         (let [value (s/lower-case value)]
+           (case value
+             "true" (ok true)
+             "false" (ok false)
+             (error (message context)))))))))
 
 (defn with-ctx
   [f ctx]
@@ -128,13 +154,11 @@
 (defn hash-map
   [validators-map & [opts]]
   (fn [{:keys [value] :as context}]
-    (let [message (or (:message opts)
-                      (fn [{:keys [value]}]
-                        (str "Expected hash-map, got " (pr-str value))))]
+    (let [message (msg-fn (:message opts)
+                          (fn [{:keys [value]}]
+                            (str "Expected hash-map, got " (pr-str value))))]
       (if (not (map? value))
-        (error (if (fn? message)
-                 (message context)
-                 message))
+        (error (message context))
         (let [[first-key] (first validators-map)
               context (ctx/path> context first-key)]
           (->> validators-map
