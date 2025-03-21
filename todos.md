@@ -53,21 +53,20 @@
 
 ### Boolean, Keyword, and Symbol Validators
 - [x] Implement boolean validator
-- [ ] Implement keyword validator
-- [ ] Implement symbol validator
+- [x] Implement keyword validator
+- [x] Implement symbol validator
 - [x] Write tests for boolean validation
-- [ ] Write tests for keyword validation
-- [ ] Write tests for symbol validation
-- [ ] Verify all boolean/keyword/symbol validator tests pass
+- [x] Write tests for keyword validation
+- [x] Write tests for symbol validation
+- [x] Verify all boolean/keyword/symbol validator tests pass
 
 ### UUID, Nil, and Any Validators
 - [ ] Implement UUID validator
 - [ ] Implement nil validator
-- [ ] ~~Implement any validator~~
 - [ ] Write tests for UUID validation
 - [ ] Write tests for nil validation
 - [ ] Write tests for any validation
-- [ ] Verify all UUID/nil/any validator tests pass
+- [ ] Verify all UUID/any validator tests pass
 
 ## Phase 3: Collection Validators
 

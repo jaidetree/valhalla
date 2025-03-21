@@ -1,5 +1,5 @@
 (ns jaidetree.valhalla.core
-  (:refer-clojure :exclude [hash-map boolean])
+  (:refer-clojure :exclude [hash-map boolean keyword symbol])
   (:require
    [clojure.core :as cc]
    [clojure.pprint :refer [pprint]]
@@ -75,6 +75,13 @@
     (fn? str-or-fn) str-or-fn
     :else default-fn))
 
+(defn- with-ctx
+  "
+  Syntax sugar for operating on a collection within a threading macro
+  "
+  [f ctx]
+  (f ctx))
+
 (defn string
   ([] (string {}))
   ([opts]
@@ -115,11 +122,14 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Expected numeric string, got " (pr-str value))))
-           value (js/Number.parseFloat value)]
-       (if (not (js/Number.isNaN value))
-         (ok value)
-         (error (message context)))))))
+                             (str "Expected numeric string, got " (pr-str value))))]
+       (try
+         (let [value (js/Number.parseFloat value)]
+           (if (not (js/Number.isNaN value))
+             (ok value)
+             (error (message context))))
+         (catch :error _err
+           (error (message context))))))))
 
 (defn boolean
   ([] (boolean {}))
@@ -139,17 +149,88 @@
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
                              (str "Expected boolean-string, got " (pr-str value))))]
-       (if (not (string? value))
+       (try
+         (if (not (string? value))
+           (error (message context))
+           (let [value (s/lower-case value)]
+             (case value
+               "true" (ok true)
+               "false" (ok false)
+               (error (message context)))))
+         (catch :error _err
+           (error (message context))))))))
+
+(defn keyword
+  ([] (keyword {}))
+  ([opts]
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected keyword, got " (pr-str value))))]
+       (if (keyword? value)
+         (ok value)
+         (error (message context)))))))
+
+(defn string->keyword
+  ([] (string->keyword {}))
+  ([opts]
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected keyword-string, got " (pr-str value))))]
+       (if (or (not (string? value))
+               (not (re-matches #"^:?[a-zA-Z][-_a-zA-Z0-9\/]*$" value)))
          (error (message context))
-         (let [value (s/lower-case value)]
-           (case value
-             "true" (ok true)
-             "false" (ok false)
+         (try
+           (let [value (s/replace value #"^:" "")]
+             (ok (cc/keyword value)))
+           (catch :error _err
              (error (message context)))))))))
 
-(defn with-ctx
-  [f ctx]
-  (f ctx))
+(defn symbol
+  ([] (symbol {}))
+  ([opts]
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected symbol, got " (pr-str value))))]
+       (if (symbol? value)
+         (ok value)
+         (error (message context)))))))
+
+(defn string->symbol
+  ([] (string->symbol {}))
+  ([opts]
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected symbol-string, got " (pr-str value))))]
+       (if (or (not (string? value))
+               (not (re-matches #"^[a-zA-Z][-_a-zA-Z0-9\/]*$" value)))
+         (error (message context))
+         (try
+           (ok (cc/symbol value))
+           (catch :error _err
+             (error (message context)))))))))
+
+(defn regex
+  ([regex-str]
+   (regex regex-str {}))
+  ([regex-str opts]
+   (assert (string? regex-str) "Expected a regex pattern string")
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected string matching " regex-str ", got " (pr-str value))))]
+       (if (not (string? value))
+         (error (message context))
+         (try
+           (let [pattern (re-pattern regex-str)]
+             (if (re-matches pattern value)
+               (ok value)
+               (error (message context))))
+           (catch :error _err
+             (error (message context)))))))))
 
 (defn hash-map
   [validators-map & [opts]]

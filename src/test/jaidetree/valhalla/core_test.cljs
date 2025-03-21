@@ -136,6 +136,88 @@
       (is (= ((v/string->boolean) (ctx/create :value "test"))
              [:v/error "Expected boolean-string, got \"test\""])))))
 
+(deftest keyword-test
+  (testing "Validates keyword inputs"
+    (is (= ((v/keyword) (ctx/create :value :test-value))
+           [:v/ok :test-value])))
+
+  (testing "keyword fails on non-keyword inputs"
+    (testing "> nil"
+      (is (= ((v/keyword) (ctx/create :value nil))
+             [:v/error "Expected keyword, got nil"])))
+    (testing "> string"
+      (is (= ((v/keyword) (ctx/create :value "test"))
+             [:v/error "Expected keyword, got \"test\""])))))
+
+(deftest string->keyword-test
+  (testing "Parses keyword-string inputs"
+    (testing "with : prefix"
+      (is (= ((v/string->keyword) (ctx/create :value ":test-value"))
+             [:v/ok :test-value])))
+    (testing "without : prefix"
+      (is (= ((v/string->keyword) (ctx/create :value "test-value"))
+             [:v/ok :test-value])))
+    (testing "with namespace prefix"
+      (is (= ((v/string->keyword) (ctx/create :value "v/test-value"))
+             [:v/ok :v/test-value]))))
+
+  (testing "string->keyword fails invalid input"
+    (testing "> nil"
+      (is (= ((v/string->keyword) (ctx/create :value nil))
+             [:v/error "Expected keyword-string, got nil"])))
+    (testing "> number"
+      (is (= ((v/string->keyword) (ctx/create :value 5))
+             [:v/error "Expected keyword-string, got 5"])))
+    (testing "> invalid strings"
+      (is (= ((v/string->keyword) (ctx/create :value "hello world"))
+             [:v/error "Expected keyword-string, got \"hello world\""])))))
+
+(deftest symbol-test
+  (testing "Validates symbol inputs"
+    (is (= ((v/symbol) (ctx/create :value (symbol "test-value")))
+           [:v/ok (symbol "test-value")])))
+
+  (testing "symbol fails invalid input"
+    (testing "> nil"
+      (is (= ((v/keyword) (ctx/create :value nil))
+             [:v/error "Expected keyword, got nil"])))
+    (testing "> string"
+      (is (= ((v/keyword) (ctx/create :value "test"))
+             [:v/error "Expected keyword, got \"test\""])))))
+
+(deftest string->symbol-test
+  (testing "Parses symbol-string inputs"
+    (testing "without namespace"
+      (is (= ((v/string->symbol) (ctx/create :value "test-value"))
+             [:v/ok 'test-value])))
+    (testing "with namespace"
+      (is (= ((v/string->symbol) (ctx/create :value "some-ns/a-symbol"))
+             [:v/ok 'some-ns/a-symbol]))))
+
+  (testing "string->keyword fails invalid input"
+    (testing "> nil"
+      (is (= ((v/string->symbol) (ctx/create :value nil))
+             [:v/error "Expected symbol-string, got nil"])))
+    (testing "> number"
+      (is (= ((v/string->symbol) (ctx/create :value 5))
+             [:v/error "Expected symbol-string, got 5"])))
+    (testing "> invalid strings"
+      (is (= ((v/string->symbol) (ctx/create :value "hello world"))
+             [:v/error "Expected symbol-string, got \"hello world\""])))))
+
+(deftest regex-test
+  (testing "Validates regex inputs"
+    (is (= ((v/regex "[-a-z0-9]+") (ctx/create :value "test-value"))
+           [:v/ok "test-value"])))
+
+  (testing "symbol fails invalid input"
+    (testing "> nil"
+      (is (= ((v/regex "[-a-z]+") (ctx/create :value nil))
+             [:v/error "Expected string matching [-a-z]+, got nil"])))
+    (testing "> non-matching string"
+      (is (= ((v/regex "[-a-z]+") (ctx/create :value "test99"))
+             [:v/error "Expected string matching [-a-z]+, got \"test99\""])))))
+
 (deftest hash-map-test
   (testing "validates a hash-map"
     (let [res (v/validate
