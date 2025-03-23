@@ -385,3 +385,32 @@
                             {:path [:c] :message "Expected numeric string, got \"abc\""}]))
       (is (= (:output res) nil)))))
 
+(deftest assert-test
+  (testing "assert"
+    (testing "validates given a predicate"
+      (is (= ((v/assert some?)
+              (ctx/create :value 5))
+             [:v/ok 5])))
+
+    (testing "fails invalid input"
+      (testing "> falsey predicate"
+        (is (= ((v/assert number?)
+                (ctx/create :value "str"))
+               [:v/error "Assert failed, got \"str\""])))
+      (testing "> invalid predicate"
+        (is (thrown? :default (v/assert "str" {})))))))
+
+(deftest instance-test
+  (testing "instance"
+    (testing "validates given a class fn"
+      (is (= ((v/instance js/String)
+              (ctx/create :value "str"))
+             [:v/ok "str"])))
+
+    (testing "fails invalid input"
+      (testing "> falsey instance"
+        (is (= ((v/instance js/Number)
+                (ctx/create :value "str"))
+               [:v/error "Instance failed, got \"str\""])))
+      (testing "> invalid predicate"
+        (is (thrown? :default (v/instance :test {})))))))

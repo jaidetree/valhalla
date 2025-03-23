@@ -1,5 +1,7 @@
 (ns jaidetree.valhalla.core
-  (:refer-clojure :exclude [hash-map boolean keyword list set symbol uuid vector])
+  (:refer-clojure :exclude [assert hash-map boolean
+                            keyword list set symbol
+                            uuid vector])
   (:require
    [clojure.core :as cc]
    [clojure.pprint :refer [pprint]]
@@ -128,7 +130,7 @@
            (if (not (js/Number.isNaN value))
              (ok value)
              (error (message context))))
-         (catch :error _err
+         (catch :default _err
            (error (message context))))))))
 
 (defn boolean
@@ -157,7 +159,7 @@
                "true" (ok true)
                "false" (ok false)
                (error (message context)))))
-         (catch :error _err
+         (catch :default _err
            (error (message context))))))))
 
 (defn keyword
@@ -184,7 +186,7 @@
          (try
            (let [value (s/replace value #"^:" "")]
              (ok (cc/keyword value)))
-           (catch :error _err
+           (catch :default _err
              (error (message context)))))))))
 
 (defn symbol
@@ -210,14 +212,14 @@
          (error (message context))
          (try
            (ok (cc/symbol value))
-           (catch :error _err
+           (catch :default _err
              (error (message context)))))))))
 
 (defn regex
   ([regex-str]
    (regex regex-str {}))
   ([regex-str opts]
-   (assert (string? regex-str) "Expected a regex pattern string")
+   (cc/assert (string? regex-str) "Expected a regex pattern string")
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
@@ -229,7 +231,7 @@
              (if (re-matches pattern value)
                (ok value)
                (error (message context))))
-           (catch :error _err
+           (catch :default _err
              (error (message context)))))))))
 
 (defn uuid
@@ -269,7 +271,7 @@
 
 (defn vector
   ([validator & [opts]]
-   (assert (fn? validator) "Validator is not a function")
+   (cc/assert (fn? validator) "Validator is not a function")
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
@@ -287,7 +289,7 @@
 
 (defn vector-tuple
   ([validators & [opts]]
-   (assert (vector? validators) "Validators are not a vector")
+   (cc/assert (vector? validators) "Validators are not a vector")
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
@@ -309,7 +311,7 @@
 
 (defn list
   ([validator & [opts]]
-   (assert (fn? validator) "Validator is not a function")
+   (cc/assert (fn? validator) "Validator is not a function")
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
@@ -327,7 +329,7 @@
 
 (defn list-tuple
   ([validators & [opts]]
-   (assert (sequential? validators) "Validators are not a vector")
+   (cc/assert (sequential? validators) "Validators are not a vector")
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
@@ -348,7 +350,7 @@
 
 (defn set
   [validator & [opts]]
-  (assert (fn? validator) "Validator is not a function")
+  (cc/assert (fn? validator) "Validator is not a function")
   (fn [{:keys [value] :as context}]
     (let [message (msg-fn (:message opts)
                           (fn [{:keys [value]}]
@@ -381,3 +383,33 @@
             (ok (:output ctx))
             (errors (:errors ctx))))))))
 
+(defn assert
+  ([pred?] (assert pred? {}))
+  ([pred? opts]
+   (cc/assert (fn? pred?) "Predicate must be a function")
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Assert failed, got " (pr-str value))))]
+       (try
+         (if (true? (pred? value))
+           (ok value)
+           (throw (js/Error. :fail)))
+         (catch :default _err
+           (error (message context))))))))
+
+(defn instance
+  ([class-fn] (instance class-fn {}))
+  ([class-fn opts]
+   (cc/assert (js-fn? class-fn) "Class function required")
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Instance failed, got " (pr-str value))))]
+       (try
+         (if (or (instance? class-fn value)
+                 (= (type value) class-fn))
+           (ok value)
+           (throw (js/Error. :fail)))
+         (catch :default _err
+           (error (message context))))))))

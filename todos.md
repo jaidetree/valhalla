@@ -105,11 +105,11 @@
 ## Phase 4: Special Type Validators & Composition
 
 ### Assert and instance validators
-- [ ] Implement assert validator
-- [ ] Implement instance validator
-- [ ] Write tests for assert validation
-- [ ] Write tests for instance validation
-- [ ] Verify all assert/instance validator tests pass
+- [x] Implement assert validator
+- [x] Implement instance validator
+- [x] Write tests for assert validation
+- [x] Write tests for instance validation
+- [x] Verify all assert/instance validator tests pass
 
 ### Date validators
 - [ ] Implement date validator
