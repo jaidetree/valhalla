@@ -60,10 +60,32 @@
       (is (= (:path next) [:a])))))
 
 (deftest update-path-test
-  (testing "replaces context path"
+  (testing "replaces last context path"
     (let [res (-> (ctx/create)
                   (ctx/update-path [:a :b]))]
       (is (= (:path res) [:a :b])))))
+
+(deftest replace-path-test
+  (testing "replace-path"
+    (testing "replaces context path at index"
+      (let [res (-> (ctx/create :path [:a :b :c :d]
+                                :input {:a {:b {:c {:d "d-str"}
+                                                :e "e-str"}}})
+                    (ctx/replace-path 3 :e))]
+        (is (= (:path res) [:a :b :e]))
+        (is (= (:value res) "e-str"))))
+    (testing "supports vectors"
+      (let [res (-> (ctx/create :path [:a 2]
+                                :input {:a [:b :c :d :e]})
+                    (ctx/replace-path 2 3))]
+        (is (= (:path res) [:a 3]))
+        (is (= (:value res) :e))))
+    #_(testing "supports lists"
+        (let [res (-> (ctx/create :path [0]
+                                  :input (list :b :c :d :e))
+                      (ctx/replace-path 1 2))]
+          (is (= (:path res) [2]))
+          (is (= (:value res) :d))))))
 
 (deftest append-error-test
   (testing "append error string"

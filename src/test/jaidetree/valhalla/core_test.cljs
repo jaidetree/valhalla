@@ -206,17 +206,130 @@
              [:v/error "Expected symbol-string, got \"hello world\""])))))
 
 (deftest regex-test
-  (testing "Validates regex inputs"
+  (testing "regex validates matching inputs"
     (is (= ((v/regex "[-a-z0-9]+") (ctx/create :value "test-value"))
            [:v/ok "test-value"])))
 
-  (testing "symbol fails invalid input"
+  (testing "regex fails invalid input"
     (testing "> nil"
       (is (= ((v/regex "[-a-z]+") (ctx/create :value nil))
              [:v/error "Expected string matching [-a-z]+, got nil"])))
     (testing "> non-matching string"
       (is (= ((v/regex "[-a-z]+") (ctx/create :value "test99"))
              [:v/error "Expected string matching [-a-z]+, got \"test99\""])))))
+
+(deftest uuid-test
+  (testing "uuid validates uuid inputs"
+    (is (= ((v/uuid) (ctx/create :value "a5cdc5f3-b23c-4e80-a7e5-00e5f60a190d"))
+           [:v/ok "a5cdc5f3-b23c-4e80-a7e5-00e5f60a190d"])))
+
+  (testing "uuid fails invalid input"
+    (testing "> nil"
+      (is (= ((v/uuid) (ctx/create :value nil))
+             [:v/error "Expected UUID string, got nil"])))
+    (testing "> non-matching string"
+      (is (= ((v/uuid) (ctx/create :value "test"))
+             [:v/error "Expected UUID string, got \"test\""])))))
+
+(deftest nil-test
+  (testing "nil"
+    (testing "validates nil inputs"
+      (is (= ((v/nil-value) (ctx/create :value nil))
+             [:v/ok nil])))
+
+    (testing "fails invalid input"
+      (testing "> number"
+        (is (= ((v/nil-value) (ctx/create :value 5))
+               [:v/error "Expected nil, got 5"])))
+      (testing "> string"
+        (is (= ((v/nil-value) (ctx/create :value "test"))
+               [:v/error "Expected nil, got \"test\""]))))))
+
+(deftest vector-test
+  (testing "vector"
+    (testing "validates vectors with same type"
+      (is (= ((v/vector (v/number))
+              (ctx/create :value [1 2 3 4 5]))
+             [:v/ok [1 2 3 4 5]])))
+    (testing "fails invalid input"
+      (testing "> mixed types"
+        (is (= ((v/vector (v/number)) (ctx/create :value [:kw "str" 'sym nil]))
+               [:v/errors [{:path [0] :message "Expected number, got :kw"}
+                           {:path [1] :message "Expected number, got \"str\""}
+                           {:path [2] :message "Expected number, got sym"}
+                           {:path [3] :message "Expected number, got nil"}]]))))))
+
+(deftest vector-tuple-test
+  (testing "vector-tuple"
+    (testing "validates tuple-like vectors"
+      (is (= ((v/vector-tuple
+               [(v/number)
+                (v/keyword)]) (ctx/create :value [5 :test]))
+             [:v/ok [5 :test]])))
+    (testing "fails invalid input"
+      (testing "> uneven forms"
+        (is (= ((v/vector-tuple
+                 [(v/number)
+                  (v/keyword)]) (ctx/create :value [5 :test "hello"]))
+               [:v/error "Expected vector-tuple of length 2, got [5 :test \"hello\"]"])))
+      (testing "> invalid input"
+        (is (= ((v/vector-tuple
+                 [(v/number)
+                  (v/keyword)
+                  (v/string)]) (ctx/create :value ["str" 500 :kw]))
+               [:v/errors [{:path [0] :message "Expected number, got \"str\""}
+                           {:path [1] :message "Expected keyword, got 500"}
+                           {:path [2] :message "Expected string, got :kw"}]]))))))
+
+(deftest list-test
+  (testing "list"
+    (testing "validates lists with same type"
+      (is (= ((v/list (v/number))
+              (ctx/create :value (list 1 2 3 4 5)))
+             [:v/ok (list 1 2 3 4 5)])))
+    (testing "fails invalid input"
+      (testing "> mixed types"
+        (is (= ((v/list (v/number)) (ctx/create :value '(:kw "str" 'sym nil)))
+               [:v/errors [{:path [0] :message "Expected number, got :kw"}
+                           {:path [1] :message "Expected number, got \"str\""}
+                           {:path [2] :message "Expected number, got (quote sym)"}
+                           {:path [3] :message "Expected number, got nil"}]]))))))
+
+(deftest list-tuple-test
+  (testing "list-tuple"
+    (testing "validates mixed tuples"
+      (is (= ((v/list-tuple
+               (list (v/number) (v/keyword)))
+              (ctx/create :value '(5 :test)))
+             [:v/ok [5 :test]])))
+    (testing "fails invalid input"
+      (testing "> uneven forms"
+        (is (= ((v/list-tuple
+                 (list (v/number) (v/keyword)))
+                (ctx/create :value '(5 :test "hello")))
+               [:v/error "Expected list-tuple of length 2, got (5 :test \"hello\")"])))
+      (testing "> invalid input"
+        (is (= ((v/list-tuple
+                 (list (v/number) (v/keyword) (v/string)))
+                (ctx/create :value '("str" 500 :kw)))
+               [:v/errors [{:path [0] :message "Expected number, got \"str\""}
+                           {:path [1] :message "Expected keyword, got 500"}
+                           {:path [2] :message "Expected string, got :kw"}]]))))))
+
+(deftest set-test
+  (testing "set"
+    (testing "validates sets with same type"
+      (is (= ((v/set (v/number))
+              (ctx/create :value #{1 2 3 4 5}))
+             [:v/ok #{1 2 3 4 5}])))
+
+    (testing "fails invalid input"
+      (testing "> mixed types"
+        (is (= ((v/list (v/number)) (ctx/create :value '(:kw "str" 'sym nil)))
+               [:v/errors [{:path [0] :message "Expected number, got :kw"}
+                           {:path [1] :message "Expected number, got \"str\""}
+                           {:path [2] :message "Expected number, got (quote sym)"}
+                           {:path [3] :message "Expected number, got nil"}]]))))))
 
 (deftest hash-map-test
   (testing "validates a hash-map"

@@ -1,4 +1,5 @@
-(ns jaidetree.valhalla.context)
+(ns jaidetree.valhalla.context
+  (:refer-clojure :exclude [get-in]))
 
 (defn unset?
   [v]
@@ -61,13 +62,30 @@
   [ctx path]
   (update ctx :path conj path))
 
+(defn- get-in
+  [m ks]
+  (->> ks
+       (reduce
+        (fn [src path]
+          (cond
+            (map? src)    (get src path)
+            (vector? src) (get src path)
+            (list? src)   (nth src path)
+            (set? src)    (nth (seq src) path)
+            :else         (throw
+                           (js/Error. (str "custom get-in couldn't navigate "
+                                           (pr-str src) " at " (pr-str path))))))
+        m)))
+
 (defn replace-path
-  [ctx path]
-  (let [prev-path (vec (butlast (:path ctx)))
-        new-path (conj prev-path path)]
-    (-> ctx
-        (update-path new-path)
-        (update-value (get-in ctx (cons :input new-path))))))
+  ([ctx path]
+   (replace-path ctx (count (:path ctx))) path)
+  ([ctx idx path]
+   (let [prev-path (vec (take (dec idx) (:path ctx)))
+         new-path (conj prev-path path)]
+     (-> ctx
+         (update-path new-path)
+         (update-value (get-in ctx (cons :input new-path)))))))
 
 (defn path>
   [ctx path]

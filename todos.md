@@ -22,8 +22,8 @@
 ### Context Object
 - [x] Implement context object structure
 - [x] Create `make-context` function
-- [ ] Create `update-context-path` function
-- [ ] Create `update-context-value` function
+- [x] Create `update-context-path` function
+- [x] Create `update-context-value` function
 - [x] Write tests for context creation
 - [x] Write tests for path manipulation
 - [x] Write tests for value updating
@@ -61,38 +61,37 @@
 - [x] Verify all boolean/keyword/symbol validator tests pass
 
 ### UUID, Nil, and Any Validators
-- [ ] Implement UUID validator
-- [ ] Implement nil validator
-- [ ] Write tests for UUID validation
-- [ ] Write tests for nil validation
-- [ ] Write tests for any validation
-- [ ] Verify all UUID/any validator tests pass
+- [x] Implement UUID validator
+- [x] Implement nil validator
+- [x] Write tests for UUID validation
+- [x] Write tests for nil validation
+- [x] Verify all UUID/nil validator tests pass
 
 ## Phase 3: Collection Validators
 
 ### Basic Vector Validator
-- [ ] Implement basic vector validator
-- [ ] Support custom error messages
-- [ ] Write tests for vector validation
-- [ ] Verify all basic vector validator tests pass
+- [x] Implement basic vector validator
+- [x] Support custom error messages
+- [x] Write tests for vector validation
+- [x] Verify all basic vector validator tests pass
 
 ### Vector-tuple Validator
-- [ ] Implement vector-tuple validator
-- [ ] Check vector length against validators
-- [ ] Track errors with specific positions
-- [ ] Write tests for vector-tuple validation
-- [ ] Write tests for length validation
-- [ ] Write tests for mixed type tuples
-- [ ] Verify all vector-tuple validator tests pass
+- [x] Implement vector-tuple validator
+- [x] Check vector length against validators
+- [x] Track errors with specific positions
+- [x] Write tests for vector-tuple validation
+- [x] Write tests for length validation
+- [x] Write tests for mixed type tuples
+- [x] Verify all vector-tuple validator tests pass
 
 ### List and Set Validators
-- [ ] Implement basic list validator
-- [ ] Implement basic set validator
-- [ ] Implement set-tuple validator
-- [ ] Write tests for list validation
-- [ ] Write tests for set validation
-- [ ] Write tests for set-tuple validation
-- [ ] Verify all list and set validator tests pass
+- [x] Implement basic list validator
+- [x] Implement list-tuple validator
+- [x] Implement basic set validator
+- [x] Write tests for list validation
+- [x] Write tests for list-tuple validation
+- [x] Write tests for set validation
+- [x] Verify all list and set validator tests pass
 
 ### Hash-map Validator
 - [x] Implement basic hash-map validator
@@ -104,6 +103,25 @@
 - [x] Verify all hash-map validator tests pass
 
 ## Phase 4: Special Type Validators & Composition
+
+### Assert and instance validators
+- [ ] Implement assert validator
+- [ ] Implement instance validator
+- [ ] Write tests for assert validation
+- [ ] Write tests for instance validation
+- [ ] Verify all assert/instance validator tests pass
+
+### Date validators
+- [ ] Implement date validator
+- [ ] Implement string->date validator
+- [ ] Implement int->date validator
+- [ ] Implement date->string validator
+- [ ] Implement date->int validator
+- [ ] Write tests for date validator
+- [ ] Write tests for string->date validator
+- [ ] Write tests for date->string validator
+- [ ] Write tests for date->int validator
+- [ ] Write tests for date->int validator
 
 ### Nilable and Optional Validators
 - [ ] Implement nilable validator
@@ -160,26 +178,10 @@
 - [ ] Implement js-object validator
 - [ ] Implement js-array validator
 - [ ] Implement js-array-like validator
-- [ ] Implement js-class validator
-- [ ] Implement JS/CLJS conversion utilities
 - [ ] Write tests for js-object validation
 - [ ] Write tests for js-array validation
 - [ ] Write tests for js-array-like validation
-- [ ] Write tests for js-class validation
-- [ ] Test conversion between JS and CLJS data
 - [ ] Verify all JavaScript interop validator tests pass
-
-### Error Handling and Internationalization
-- [ ] Create jaidetree.valhalla.errors namespace
-- [ ] Create jaidetree.valhalla.i18n namespace
-- [ ] Implement error formatting utilities
-- [ ] Create translation system
-- [ ] Implement at least two languages (English + one other)
-- [ ] Update validators to use i18n
-- [ ] Write tests for error formatting
-- [ ] Write tests for translations
-- [ ] Test integration with existing validators
-- [ ] Verify all error handling and i18n tests pass
 
 ### Performance Optimization
 - [ ] Create jaidetree.valhalla.perf namespace

@@ -1,5 +1,5 @@
 (ns jaidetree.valhalla.core
-  (:refer-clojure :exclude [hash-map boolean keyword symbol])
+  (:refer-clojure :exclude [hash-map boolean keyword list set symbol uuid vector])
   (:require
    [clojure.core :as cc]
    [clojure.pprint :refer [pprint]]
@@ -232,6 +232,138 @@
            (catch :error _err
              (error (message context)))))))))
 
+(defn uuid
+  ([] (uuid {}))
+  ([opts]
+   (regex "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+          (merge opts
+                 {:message (fn [{:keys [value]}]
+                             (str "Expected UUID string, got " (pr-str value)))}))))
+
+(defn nil-value
+  ([] (nil-value {}))
+  ([opts]
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected nil, got " (pr-str value))))]
+       (if (nil? value)
+         (ok value)
+         (error (message context)))))))
+
+(defn reduce-validators
+  [& {:keys [context validator-kvs path-index]}]
+  (->> validator-kvs
+       (reduce
+        (fn [ctx [key validator]]
+          (let [ctx (ctx/replace-path ctx path-index key)
+                result (validator ctx)]
+            (result-case result
+                         :ok (fn [value]
+                               (ctx/accrete ctx value))
+                         :err (fn [error]
+                                (ctx/raise-error ctx error))
+                         :errs (fn [errors]
+                                 (ctx/raise-errors ctx errors)))))
+        context)))
+
+(defn vector
+  ([validator & [opts]]
+   (assert (fn? validator) "Validator is not a function")
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected vector, got " (pr-str value))))]
+       (if (vector? value)
+         (let [idx (count (:path context))
+               ctx (reduce-validators
+                    {:context context
+                     :path-index idx
+                     :validator-kvs (map-indexed cc/vector (repeat (count value) validator))})]
+           (if (empty? (:errors ctx))
+             (ok (vec (vals (:output ctx))))
+             (errors (:errors ctx))))
+         (error (message context)))))))
+
+(defn vector-tuple
+  ([validators & [opts]]
+   (assert (vector? validators) "Validators are not a vector")
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected vector-tuple of length "
+                                  (count validators)
+                                  ", got " (pr-str value))))]
+       (if (and (vector? value)
+                (= (count validators) (count value)))
+         (let [idx (count (:path context))
+               ctx (reduce-validators
+                    {:context context
+                     :path-index idx
+                     :validator-kvs (map-indexed cc/vector validators)})]
+           (if (empty? (:errors ctx))
+             (ok (vec (vals (:output ctx))))
+             (errors (:errors ctx))))
+
+         (error (message context)))))))
+
+(defn list
+  ([validator & [opts]]
+   (assert (fn? validator) "Validator is not a function")
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected list, got " (pr-str value))))]
+       (if (list? value)
+         (let [idx (count (:path context))
+               ctx (reduce-validators
+                    {:context context
+                     :path-index idx
+                     :validator-kvs (map-indexed cc/list (repeat (count value) validator))})]
+           (if (empty? (:errors ctx))
+             (ok (vals (:output ctx)))
+             (errors (:errors ctx))))
+         (error (message context)))))))
+
+(defn list-tuple
+  ([validators & [opts]]
+   (assert (sequential? validators) "Validators are not a vector")
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected list-tuple of length "
+                                  (count validators)
+                                  ", got " (pr-str value))))]
+       (if (and (list? value)
+                (= (count validators) (count value)))
+         (let [idx (count (:path context))
+               ctx (reduce-validators
+                    {:context context
+                     :path-index idx
+                     :validator-kvs (map-indexed cc/vector validators)})]
+           (if (empty? (:errors ctx))
+             (ok (vals (:output ctx)))
+             (errors (:errors ctx))))
+         (error (message context)))))))
+
+(defn set
+  [validator & [opts]]
+  (assert (fn? validator) "Validator is not a function")
+  (fn [{:keys [value] :as context}]
+    (let [message (msg-fn (:message opts)
+                          (fn [{:keys [value]}]
+                            (str "Expected set, got " (pr-str value))))]
+      (if (set? value)
+        (let [idx (count (:path context))
+              ctx (reduce-validators
+                   {:context context
+                    :path-index idx
+                    :validator-kvs (map-indexed cc/list (repeat (count value) validator))})]
+          (if (empty? (:errors ctx))
+            (ok (into #{} (vals (:output ctx))))
+            (errors (:errors ctx))))
+        (error (message context))))))
+
 (defn hash-map
   [validators-map & [opts]]
   (fn [{:keys [value] :as context}]
@@ -240,27 +372,12 @@
                             (str "Expected hash-map, got " (pr-str value))))]
       (if (not (map? value))
         (error (message context))
-        (let [[first-key] (first validators-map)
-              context (ctx/path> context first-key)]
-          (->> validators-map
-               (reduce
-                (fn [ctx [key validator]]
-                  (let [ctx (if (= first-key key)
-                              ctx
-                              (ctx/replace-path ctx key))
-                        result (validator ctx)]
-                    (result-case result
-                                 :ok (fn [value]
-                                       (ctx/accrete ctx value))
-                                 :err (fn [error]
-                                        (ctx/raise-error ctx error))
-                                 :errs (fn [errors]
-                                         (ctx/raise-errors ctx errors)))))
-
-                context)
-               (with-ctx
-                 (fn [ctx]
-                   (if (empty? (:errors ctx))
-                     (ok (:output ctx))
-                     (errors (:errors ctx)))))))))))
+        (let [idx (count (:path context))
+              ctx (reduce-validators
+                   {:context context
+                    :validator-kvs validators-map
+                    :path-index idx})]
+          (if (empty? (:errors ctx))
+            (ok (:output ctx))
+            (errors (:errors ctx))))))))
 
