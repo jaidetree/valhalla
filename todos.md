@@ -112,16 +112,17 @@
 - [x] Verify all assert/instance validator tests pass
 
 ### Date validators
-- [ ] Implement date validator
-- [ ] Implement string->date validator
-- [ ] Implement int->date validator
-- [ ] Implement date->string validator
-- [ ] Implement date->int validator
-- [ ] Write tests for date validator
-- [ ] Write tests for string->date validator
-- [ ] Write tests for date->string validator
-- [ ] Write tests for date->int validator
-- [ ] Write tests for date->int validator
+- [x] Implement date validator
+- [x] Implement string->date validator
+- [x] Implement number->date validator
+- [x] Implement date->string validator
+- [x] Implement date->int validator
+- [x] Write tests for date validator
+- [x] Write tests for string->date validator
+- [x] Write tests for number->date validator
+- [x] Write tests for date->string validator
+- [x] Write tests for date->num validator
+- [x] Verify all date validator tests pass
 
 ### Nilable and Optional Validators
 - [ ] Implement nilable validator

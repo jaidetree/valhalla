@@ -411,6 +411,96 @@
       (testing "> falsey instance"
         (is (= ((v/instance js/Number)
                 (ctx/create :value "str"))
-               [:v/error "Instance failed, got \"str\""])))
+               [:v/error "Expected instance of Number, got \"str\""])))
       (testing "> invalid predicate"
         (is (thrown? :default (v/instance :test {})))))))
+
+(deftest date-test
+  (testing "date"
+    (testing "validates js date objects"
+      (let [date (js/Date.)]
+        (is (= ((v/date)
+                (ctx/create :value date))
+               [:v/ok date]))))
+
+    (testing "fails invalid input"
+      (testing "> random string"
+        (is (= ((v/date)
+                (ctx/create :value "not-a-date"))
+               [:v/error "Expected instance of Date, got \"not-a-date\""])))
+      (testing "> random date")
+      (is (= ((v/date)
+              (ctx/create :value (js/Date. (js/Date.parse "whatever"))))
+             [:v/error "Expected valid date, got Invalid Date"])))))
+
+(deftest string->date-test
+  (testing "string->date"
+    (testing "parses valid date-string"
+      (is (= ((v/string->date)
+              (ctx/create :value "2025-03-23"))
+             [:v/ok (js/Date. "2025-03-23")])))
+
+    (testing "fails invalid input"
+      (testing "> invalid value"
+        (is (= ((v/string->date)
+                (ctx/create :value :kw))
+               [:v/error "Expected valid date-string, got :kw"])))
+      (testing "> invalid date-string"
+        (is (= ((v/string->date)
+                (ctx/create :value "2025-13-32"))
+               [:v/error "Expected valid date-string, got \"2025-13-32\""]))))))
+
+(deftest num->date-test
+  (testing "num->date"
+    (testing "parses valid timestamp floats"
+      (let [ts (js/Date.now)]
+        (is (= ((v/number->date)
+                (ctx/create :value ts))
+               [:v/ok (js/Date. ts)]))))
+
+    (testing "fails invalid input"
+      (testing "> invalid value"
+        (is (= ((v/number->date)
+                (ctx/create :value :kw))
+               [:v/error "Expected valid timestamp, got :kw"])))
+      (testing "> invalid number"
+        (is (= ((v/string->date)
+                (ctx/create :value -5))
+               [:v/error "Expected valid date-string, got -5"]))))))
+
+(deftest date->string-test
+  (testing "date->string"
+    (testing "formats date objects to strings"
+      (is (let [date (js/Date. (js/Date.parse "2025-03-23"))]
+            (= ((v/date->string)
+                (ctx/create :value date))
+               [:v/ok (.toISOString date)]))))
+
+    (testing "fails invalid input"
+      (testing "> invalid value"
+        (is (= ((v/date->string)
+                (ctx/create :value :kw))
+               [:v/error "Expected valid date, got :kw"])))
+      (testing "> invalid date"
+        (is (= ((v/date->string)
+                (ctx/create :value (js/Date. "invalid")))
+               [:v/error "Expected valid date, got \"Invalid Date\""]))))))
+
+(deftest date->number-test
+  (testing "date->number"
+    (testing "formats date objects to numbers"
+      (is (let [date (js/Date. (js/Date.parse "2025-03-23"))]
+            (= ((v/date->number)
+                (ctx/create :value date))
+               [:v/ok (.getTime date)]))))
+
+    (testing "fails invalid input"
+      (testing "> invalid value"
+        (is (= ((v/date->number)
+                (ctx/create :value :kw))
+               [:v/error "Expected valid date, got :kw"])))
+      (testing "> invalid date"
+        (is (= ((v/date->number)
+                (ctx/create :value (js/Date. "invalid")))
+               [:v/error "Expected valid date, got \"Invalid Date\""]))))))
+

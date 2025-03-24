@@ -6,7 +6,8 @@
    [clojure.core :as cc]
    [clojure.pprint :refer [pprint]]
    [clojure.string :as s]
-   [jaidetree.valhalla.context :as ctx]))
+   [jaidetree.valhalla.context :as ctx]
+   [jaidetree.valhalla.utils :as u]))
 
 (defn ok
   [value]
@@ -46,7 +47,7 @@
     :v/ok     (ok val-or-msg)
     :v/error  (err val-or-msg)
     :v/errors (errs val-or-msg)
-    (throw (js/Error. (str "Could not match status type " (pr-str status))))))
+    (throw (js/Error. (str "Could not match status type " (u/stringify status))))))
 
 (defn valid?
   [result]
@@ -90,7 +91,7 @@
    (fn [{:keys [value _path] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Expected string, got " (pr-str value))))]
+                             (str "Expected string, got " (u/stringify value))))]
        (if (string? value)
          (ok value)
          (error (message context)))))))
@@ -101,7 +102,7 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Expected number, got " (pr-str value))))]
+                             (str "Expected number, got " (u/stringify value))))]
        (if (number? value)
          (ok value)
          (error (message context)))))))
@@ -112,7 +113,7 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Expected numeric string, got " (pr-str value))))
+                             (str "Expected numeric string, got " (u/stringify value))))
            number-value (js/Number.parseFloat value 10)]
        (if (not (js/Number.isNaN number-value))
          (ok value)
@@ -124,7 +125,7 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Expected numeric string, got " (pr-str value))))]
+                             (str "Expected numeric string, got " (u/stringify value))))]
        (try
          (let [value (js/Number.parseFloat value)]
            (if (not (js/Number.isNaN value))
@@ -139,7 +140,7 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Expected boolean, got " (pr-str value))))]
+                             (str "Expected boolean, got " (u/stringify value))))]
        (if (boolean? value)
          (ok value)
          (error (message context)))))))
@@ -150,7 +151,7 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Expected boolean-string, got " (pr-str value))))]
+                             (str "Expected boolean-string, got " (u/stringify value))))]
        (try
          (if (not (string? value))
            (error (message context))
@@ -168,7 +169,7 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Expected keyword, got " (pr-str value))))]
+                             (str "Expected keyword, got " (u/stringify value))))]
        (if (keyword? value)
          (ok value)
          (error (message context)))))))
@@ -179,7 +180,7 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Expected keyword-string, got " (pr-str value))))]
+                             (str "Expected keyword-string, got " (u/stringify value))))]
        (if (or (not (string? value))
                (not (re-matches #"^:?[a-zA-Z][-_a-zA-Z0-9\/]*$" value)))
          (error (message context))
@@ -195,7 +196,7 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Expected symbol, got " (pr-str value))))]
+                             (str "Expected symbol, got " (u/stringify value))))]
        (if (symbol? value)
          (ok value)
          (error (message context)))))))
@@ -206,7 +207,7 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Expected symbol-string, got " (pr-str value))))]
+                             (str "Expected symbol-string, got " (u/stringify value))))]
        (if (or (not (string? value))
                (not (re-matches #"^[a-zA-Z][-_a-zA-Z0-9\/]*$" value)))
          (error (message context))
@@ -223,7 +224,7 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Expected string matching " regex-str ", got " (pr-str value))))]
+                             (str "Expected string matching " regex-str ", got " (u/stringify value))))]
        (if (not (string? value))
          (error (message context))
          (try
@@ -240,7 +241,7 @@
    (regex "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
           (merge opts
                  {:message (fn [{:keys [value]}]
-                             (str "Expected UUID string, got " (pr-str value)))}))))
+                             (str "Expected UUID string, got " (u/stringify value)))}))))
 
 (defn nil-value
   ([] (nil-value {}))
@@ -248,7 +249,7 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Expected nil, got " (pr-str value))))]
+                             (str "Expected nil, got " (u/stringify value))))]
        (if (nil? value)
          (ok value)
          (error (message context)))))))
@@ -275,7 +276,7 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Expected vector, got " (pr-str value))))]
+                             (str "Expected vector, got " (u/stringify value))))]
        (if (vector? value)
          (let [idx (count (:path context))
                ctx (reduce-validators
@@ -295,7 +296,7 @@
                            (fn [{:keys [value]}]
                              (str "Expected vector-tuple of length "
                                   (count validators)
-                                  ", got " (pr-str value))))]
+                                  ", got " (u/stringify value))))]
        (if (and (vector? value)
                 (= (count validators) (count value)))
          (let [idx (count (:path context))
@@ -315,7 +316,7 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Expected list, got " (pr-str value))))]
+                             (str "Expected list, got " (u/stringify value))))]
        (if (list? value)
          (let [idx (count (:path context))
                ctx (reduce-validators
@@ -335,7 +336,7 @@
                            (fn [{:keys [value]}]
                              (str "Expected list-tuple of length "
                                   (count validators)
-                                  ", got " (pr-str value))))]
+                                  ", got " (u/stringify value))))]
        (if (and (list? value)
                 (= (count validators) (count value)))
          (let [idx (count (:path context))
@@ -354,7 +355,7 @@
   (fn [{:keys [value] :as context}]
     (let [message (msg-fn (:message opts)
                           (fn [{:keys [value]}]
-                            (str "Expected set, got " (pr-str value))))]
+                            (str "Expected set, got " (u/stringify value))))]
       (if (set? value)
         (let [idx (count (:path context))
               ctx (reduce-validators
@@ -371,7 +372,7 @@
   (fn [{:keys [value] :as context}]
     (let [message (msg-fn (:message opts)
                           (fn [{:keys [value]}]
-                            (str "Expected hash-map, got " (pr-str value))))]
+                            (str "Expected hash-map, got " (u/stringify value))))]
       (if (not (map? value))
         (error (message context))
         (let [idx (count (:path context))
@@ -390,7 +391,7 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Assert failed, got " (pr-str value))))]
+                             (str "Assert failed, got " (u/stringify value))))]
        (try
          (if (true? (pred? value))
            (ok value)
@@ -405,11 +406,91 @@
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
-                             (str "Instance failed, got " (pr-str value))))]
+                             (str "Expected instance of " (.-name class-fn) ", got " (u/stringify value))))]
        (try
          (if (or (instance? class-fn value)
                  (= (type value) class-fn))
            (ok value)
            (throw (js/Error. :fail)))
+         (catch :default _err
+           (error (message context))))))))
+
+(defn- date?
+  [date]
+  (not (js/Number.isNaN (.getTime date))))
+
+;; @TODO Clean up with chain?
+(defn date
+  [& [opts]]
+  (fn [context]
+    (let [result ((instance js/Date) context)
+          message (msg-fn (:message opts)
+                          (fn [{:keys [value]}]
+                            (str "Expected valid date, got " (.toString value))))]
+      (result-case result
+                   :ok   (fn [value]
+                           (if (date? value)
+                             (ok value)
+                             (error (message context))))
+                   :err  error
+                   :errs errors))))
+
+(defn string->date
+  ([] (string->date {}))
+  ([opts]
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected valid date-string, got " (u/stringify value))))]
+       (try
+         (cc/assert (string? value))
+         (let [date (js/Date. (js/Date.parse value))]
+           (if (date? date)
+             (ok date)
+             (throw (js/Error. "Invalid Date"))))
+         (catch :default _err
+           (error (message context))))))))
+
+(defn number->date
+  ([] (number->date {}))
+  ([opts]
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected valid timestamp, got " (u/stringify value))))]
+       (try
+         (cc/assert (float? value))
+         (let [date (js/Date. value)]
+           (if (date? date)
+             (ok date)
+             (throw (js/Error. "Invalid Date"))))
+         (catch :default _err
+           (error (message context))))))))
+
+(defn date->string
+  ([] (date->string {}))
+  ([opts]
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected valid date, got " (u/stringify value))))]
+       (try
+         (if (date? value)
+           (ok (.toISOString value))
+           (throw (js/Error. :invalid)))
+         (catch :default _err
+           (error (message context))))))))
+
+(defn date->number
+  ([] (date->number {}))
+  ([opts]
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected valid date, got " (u/stringify value))))]
+       (try
+         (if (date? value)
+           (ok (.getTime value))
+           (throw (js/Error. :invalid)))
          (catch :default _err
            (error (message context))))))))
