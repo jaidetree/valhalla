@@ -504,3 +504,122 @@
                 (ctx/create :value (js/Date. "invalid")))
                [:v/error "Expected valid date, got \"Invalid Date\""]))))))
 
+(deftest nilable-test
+  (testing "nilable"
+    (testing "passes"
+      (testing "on nil values"
+        (is (= ((v/nilable (v/number))
+                (ctx/create :value nil))
+               [:v/ok nil])))
+      (testing "validator values"
+        (is (= ((v/nilable (v/number))
+                (ctx/create :value 5))
+               [:v/ok 5]))))
+    (testing "fails"
+      (testing "invalid validator input"
+        (is (= ((v/nilable (v/number))
+                (ctx/create :value "str"))
+               [:v/error "Expected number, got \"str\""]))))))
+
+(deftest enum-test
+  (testing "nilable"
+    (testing "passes"
+      (testing "accepted videos"
+        (is (= ((v/enum [:a :b :c])
+                (ctx/create :value :b))
+               [:v/ok :b]))))
+    (testing "fails"
+      (testing "invalid value type"
+        (is (= ((v/enum [:a :b :c])
+                (ctx/create :value "str"))
+               [:v/error "Expected keyword one of :a, :b, :c, got \"str\""])))
+      (testing "invalid enum type"
+        (is (thrown? :default ((v/enum "str")
+                               (ctx/create :value "str"))))))))
+
+(deftest literal-test
+  (testing "literal"
+    (testing "passes"
+      (testing "matching string literals"
+        (is (= ((v/literal "str")
+                (ctx/create :value "str"))
+               [:v/ok "str"])))
+      (testing "matching keyword literals"
+        (is (= ((v/literal :kw)
+                (ctx/create :value :kw))
+               [:v/ok :kw]))))
+    (testing "fails"
+      (testing "non-matching literal values"
+        (is (= ((v/literal "str")
+                (ctx/create :value :kw))
+               [:v/error "Expected literal \"str\", got :kw"]))))))
+
+(deftest chain-test
+  (testing "chain"
+    (testing "passes"
+      (testing "multiple, sequential validations"
+        (is (= ((v/chain
+                 (v/string)
+                 (v/string->number)
+                 (fn [{:keys [value]}]
+                   (v/ok (js/Math.round value))))
+                (ctx/create :value "55.39"))
+               [:v/ok 55]))))
+    (testing "fails"
+      (testing "first failing validator"
+        (is (= ((v/chain
+                 (v/string)
+                 (v/keyword)
+                 (v/string->number))
+                (ctx/create :value "55.5"))
+               [:v/errors [{:path [] :message "Expected keyword, got \"55.5\""}]]))))))
+
+(deftest union-test
+  (testing "union"
+    (testing "passes"
+      (testing "first passing validator"
+        (is (= ((v/union
+                 (v/string)
+                 (v/keyword)
+                 (v/number))
+                (ctx/create :value :kw))
+               [:v/ok :kw]))))
+    (testing "fails"
+      (testing "last failing validator"
+        (is (= ((v/union
+                 (v/string)
+                 (v/number)
+                 (v/keyword))
+                (ctx/create :value nil))
+               [:v/errors [{:path [] :message "Expected keyword, got nil"}]]))))))
+
+(deftest default-test
+  (testing "default"
+    (testing "passes"
+      (testing "if nil with default value"
+        (is (= ((v/default
+                  (v/number)
+                  0)
+                (ctx/create :value nil))
+               [:v/ok 0])))
+
+      (testing "if nil with default function"
+        (is (= ((v/default
+                  (v/number)
+                  (fn [{:keys [value]}]
+                    {:from value :to true}))
+                (ctx/create :value nil))
+               [:v/ok {:from nil :to true}])))
+      (testing "if not nil"
+        (is (= ((v/default
+                  (v/keyword)
+                  0)
+                (ctx/create :value :kw))
+               [:v/ok :kw]))))
+    (testing "fails"
+      (testing "forwards validator error"
+        (is (= ((v/default
+                  (v/keyword)
+                  :not-found)
+                (ctx/create :value "str"))
+               [:v/error "Expected keyword, got \"str\""]))))))

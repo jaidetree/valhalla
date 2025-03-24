@@ -30,6 +30,10 @@
   [ctx value]
   (assoc ctx :value value))
 
+(defn clear-errors
+  [ctx]
+  (assoc ctx :errors []))
+
 (defn raise-error
   [ctx err]
   (let [error (if (string? err)

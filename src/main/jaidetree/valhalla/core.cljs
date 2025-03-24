@@ -254,7 +254,7 @@
          (ok value)
          (error (message context)))))))
 
-(defn reduce-validators
+(defn- reduce-validators
   [& {:keys [context validator-kvs path-index]}]
   (->> validator-kvs
        (reduce
@@ -494,3 +494,115 @@
            (throw (js/Error. :invalid)))
          (catch :default _err
            (error (message context))))))))
+
+(defn nilable
+  [validator]
+  (fn [{:keys [value] :as context}]
+    (if (nil? value)
+      (ok nil)
+      (validator context))))
+
+(defn enum
+  ([kws] (enum kws {}))
+  ([kws opts]
+   (cc/assert (every? keyword? kws) "Enum values must be keywords")
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected keyword one of " (s/join ", " kws) ", got " (u/stringify value))))]
+       (try
+         (if (and (keyword? value)
+                  (contains? (cc/set kws) value))
+           (ok value)
+           (throw (js/Error. :fail)))
+         (catch :default _err
+           (error (message context))))))))
+
+(defn literal
+  ([expected] (literal expected {}))
+  ([expected opts]
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected literal " (u/stringify expected) ", got " (u/stringify value))))]
+       (try
+         (if (= value expected)
+           (ok value)
+           (throw (js/Error. :fail)))
+         (catch :default _err
+           (error (message context))))))))
+
+(defn- chain-validators
+  [{:keys [validators context]}]
+  (->> validators
+       (reduce
+        (fn [ctx validator]
+          (let [result (validator ctx)]
+            (result-case result
+                         :ok (fn [value]
+                               (-> context
+                                   (ctx/accrete value)))
+                         :err (fn [error]
+                                (-> context
+                                    (ctx/raise-error error)
+                                    (fail)
+                                    (reduced)))
+                         :errs (fn [errors]
+                                 (-> context
+                                     (ctx/raise-errors errors)
+                                     (fail)
+                                     (reduced))))))
+        context)))
+
+(defn chain
+  [& validators]
+  (fn [{:keys [] :as context}]
+    (let [ctx (chain-validators
+               {:validators validators
+                :context    context})]
+      (if (empty? (:errors ctx))
+        (ok (:output ctx))
+        (errors (:errors ctx))))))
+
+(defn- union-validators
+  [{:keys [validators context]}]
+  (->> validators
+       (reduce
+        (fn [ctx validator]
+          (let [result (validator ctx)]
+            (result-case
+             result
+             :ok (fn [value]
+                   (-> context
+                       (ctx/accrete value)
+                       (ctx/clear-errors)
+                       (pass)
+                       (reduced)))
+             :err (fn [error]
+                    (-> context
+                        (ctx/clear-errors)
+                        (ctx/raise-error error)))
+             :errs (fn [errors]
+                     (-> context
+                         (ctx/clear-errors)
+                         (ctx/raise-errors errors))))))
+        context)))
+
+(defn union
+  [& validators]
+  (fn [{:keys [_value] :as context}]
+    (let [ctx (union-validators
+               {:validators validators
+                :context    (ctx/clear-errors context)})]
+      (if (empty? (:errors ctx))
+        (ok (:output ctx))
+        (errors (:errors ctx))))))
+
+(defn default
+  [validator default-value-or-fn]
+  (fn [{:keys [value] :as context}]
+    (if (nil? value)
+      (ok (if (fn? default-value-or-fn)
+            (default-value-or-fn context)
+            default-value-or-fn))
+      (validator context))))

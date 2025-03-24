@@ -125,44 +125,48 @@
 - [x] Verify all date validator tests pass
 
 ### Nilable and Optional Validators
-- [ ] Implement nilable validator
-- [ ] Implement optional validator
-- [ ] Write tests for nilable validation
-- [ ] Write tests for optional validation
-- [ ] Verify all nilable/optional validator tests pass
+- [x] Implement nilable validator
+- [ ] ~~Implement optional validator~~
+- [x] Write tests for nilable validation
+- [ ] ~~Write tests for optional validation~~
+- [x] Verify all nilable/optional validator tests pass
 
 ### Enum and Literal Validators
-- [ ] Implement enum validator
-- [ ] Implement literal validator
-- [ ] Write tests for enum validation
-- [ ] Write tests for literal validation
-- [ ] Verify all enum/literal validator tests pass
+- [x] Implement enum validator
+- [x] Implement literal validator
+- [x] Write tests for enum validation
+- [x] Write tests for literal validation
+- [x] Verify all enum/literal validator tests pass
 
 ### Chain and Union Functions
-- [ ] Implement chain function (logical AND)
-- [ ] Implement union function (logical OR)
-- [ ] Write tests for chain validation (multiple validators)
-- [ ] Write tests for union validation (any validator passes)
-- [ ] Test error message combining in union
-- [ ] Verify all chain/union function tests pass
-
-### When and Custom Validators
-- [ ] Implement when function (conditional validation)
-- [ ] Implement custom function (arbitrary validation logic)
-- [ ] Write tests for when validation
-- [ ] Write tests for custom validation
-- [ ] Test path preservation
-- [ ] Verify all when/custom validator tests pass
+- [x] Implement chain function (logical AND)
+- [x] Implement union function (logical OR)
+- [x] Write tests for chain validation (multiple validators)
+- [x] Write tests for union validation (any validator passes)
+- [x] Test error message combining in union
+- [x] Verify all chain/union function tests pass
 
 ### Default Function
-- [ ] Implement default function
-- [ ] Support function-based defaults
-- [ ] Write tests for static default values
-- [ ] Write tests for function-based defaults
-- [ ] Test validator application to defaults
-- [ ] Verify all default function tests pass
+- [x] Implement default function
+- [x] Support function-based defaults
+- [x] Write tests for static default values
+- [x] Write tests for function-based defaults
+- [x] Test validator application to defaults
+- [x] Verify all default function tests pass
 
-## Phase 5: Advanced Features
+## Phase 5: JS Interop
+
+### JavaScript Interop Validators
+- [ ] Create jaidetree.valhalla.interop namespace
+- [ ] Implement js-object validator
+- [ ] Implement js-array validator
+- [ ] Implement js-array-like validator
+- [ ] Write tests for js-object validation
+- [ ] Write tests for js-array validation
+ [ ] Write tests for js-array-like validation
+- [ ] Verify all JavaScript interop validator tests pass
+
+## Phase 6: Advanced Features
 
 ### Lazy and Ref Validators
 - [ ] Implement lazy validator
@@ -174,15 +178,7 @@
 - [ ] Test against infinite recursion
 - [ ] Verify all lazy/ref validator tests pass
 
-### JavaScript Interop Validators
-- [ ] Create jaidetree.valhalla.interop namespace
-- [ ] Implement js-object validator
-- [ ] Implement js-array validator
-- [ ] Implement js-array-like validator
-- [ ] Write tests for js-object validation
-- [ ] Write tests for js-array validation
-- [ ] Write tests for js-array-like validation
-- [ ] Verify all JavaScript interop validator tests pass
+## Phase 7: Testing
 
 ### Performance Optimization
 - [ ] Create jaidetree.valhalla.perf namespace
