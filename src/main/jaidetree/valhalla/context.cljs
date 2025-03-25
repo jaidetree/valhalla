@@ -1,5 +1,7 @@
 (ns jaidetree.valhalla.context
-  (:refer-clojure :exclude [get-in]))
+  (:refer-clojure :exclude [get-in])
+  (:require
+   [clojure.pprint :refer [pprint]]))
 
 (defn unset?
   [v]
@@ -85,8 +87,14 @@
   ([ctx path]
    (replace-path ctx (count (:path ctx))) path)
   ([ctx idx path]
-   (let [prev-path (vec (take (dec idx) (:path ctx)))
+   (let [prev-path (vec (take idx (:path ctx)))
          new-path (conj prev-path path)]
+     (pprint
+      {:replace-path
+       {:prev-path prev-path
+        :next-path new-path
+        :value-prev (get-in ctx (cons :input prev-path))
+        :value-next (get-in ctx (cons :input new-path))}})
      (-> ctx
          (update-path new-path)
          (update-value (get-in ctx (cons :input new-path)))))))

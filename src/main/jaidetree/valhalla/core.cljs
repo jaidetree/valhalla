@@ -255,20 +255,26 @@
          (error (message context)))))))
 
 (defn- reduce-validators
-  [& {:keys [context validator-kvs path-index]}]
-  (->> validator-kvs
-       (reduce
-        (fn [ctx [key validator]]
-          (let [ctx (ctx/replace-path ctx path-index key)
-                result (validator ctx)]
-            (result-case result
-                         :ok (fn [value]
-                               (ctx/accrete ctx value))
-                         :err (fn [error]
-                                (ctx/raise-error ctx error))
-                         :errs (fn [errors]
-                                 (ctx/raise-errors ctx errors)))))
-        context)))
+  [& {:keys [context validator-kvs path-index output]}]
+  (let [context (assoc context :output output)]
+    (->> validator-kvs
+         (reduce
+          (fn [ctx [key validator]]
+            (let [_ (pprint {:before ctx})
+                  ctx (ctx/replace-path ctx path-index key)
+                  _ (pprint {:after ctx})
+                  result (validator ctx)]
+              (result-case result
+                           :ok (fn [value]
+                                 (-> ctx
+                                     (assoc :value value)
+                                     (assoc-in [:output key] value)
+                                     #_(doto pprint)))
+                           :err (fn [error]
+                                  (ctx/raise-error ctx error))
+                           :errs (fn [errors]
+                                   (ctx/raise-errors ctx errors)))))
+          context))))
 
 (defn vector
   ([validator & [opts]]
@@ -282,7 +288,8 @@
                ctx (reduce-validators
                     {:context context
                      :path-index idx
-                     :validator-kvs (map-indexed cc/vector (repeat (count value) validator))})]
+                     :validator-kvs (map-indexed cc/vector (repeat (count value) validator))
+                     :output []})]
            (if (empty? (:errors ctx))
              (ok (vec (vals (:output ctx))))
              (errors (:errors ctx))))
@@ -303,7 +310,8 @@
                ctx (reduce-validators
                     {:context context
                      :path-index idx
-                     :validator-kvs (map-indexed cc/vector validators)})]
+                     :validator-kvs (map-indexed cc/vector validators)
+                     :output []})]
            (if (empty? (:errors ctx))
              (ok (vec (vals (:output ctx))))
              (errors (:errors ctx))))
@@ -322,7 +330,8 @@
                ctx (reduce-validators
                     {:context context
                      :path-index idx
-                     :validator-kvs (map-indexed cc/list (repeat (count value) validator))})]
+                     :validator-kvs (map-indexed cc/list (repeat (count value) validator))
+                     :output []})]
            (if (empty? (:errors ctx))
              (ok (vals (:output ctx)))
              (errors (:errors ctx))))
@@ -343,7 +352,8 @@
                ctx (reduce-validators
                     {:context context
                      :path-index idx
-                     :validator-kvs (map-indexed cc/vector validators)})]
+                     :validator-kvs (map-indexed cc/vector validators)
+                     :output []})]
            (if (empty? (:errors ctx))
              (ok (vals (:output ctx)))
              (errors (:errors ctx))))
@@ -361,7 +371,8 @@
               ctx (reduce-validators
                    {:context context
                     :path-index idx
-                    :validator-kvs (map-indexed cc/list (repeat (count value) validator))})]
+                    :validator-kvs (map-indexed cc/list (repeat (count value) validator))
+                    :output #{}})]
           (if (empty? (:errors ctx))
             (ok (into #{} (vals (:output ctx))))
             (errors (:errors ctx))))
@@ -379,7 +390,8 @@
               ctx (reduce-validators
                    {:context context
                     :validator-kvs validators-map
-                    :path-index idx})]
+                    :path-index idx
+                    :output {}})]
           (if (empty? (:errors ctx))
             (ok (:output ctx))
             (errors (:errors ctx))))))))

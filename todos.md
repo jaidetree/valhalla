@@ -163,7 +163,7 @@
 - [ ] Implement js-array-like validator
 - [ ] Write tests for js-object validation
 - [ ] Write tests for js-array validation
- [ ] Write tests for js-array-like validation
+- [ ] Write tests for js-array-like validation
 - [ ] Verify all JavaScript interop validator tests pass
 
 ## Phase 6: Advanced Features

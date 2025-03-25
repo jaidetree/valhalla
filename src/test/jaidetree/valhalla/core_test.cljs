@@ -332,29 +332,36 @@
                            {:path [3] :message "Expected number, got nil"}]]))))))
 
 (deftest hash-map-test
-  (testing "validates a hash-map"
-    (let [res (v/validate
-               (v/hash-map {:a (v/string)
-                            :b (v/number)
-                            :c (v/string->number)})
-               {:a "test1"
-                :b 5
-                :c "45.5"})]
-      (is (= (:status res) :v/pass))
-      (is (= (:errors res) nil))
-      (is (= (:output res) {:a "test1"
+  (testing "hash-map"
+    (testing "passes"
+      (testing "valid hash-map values"
+        (let [res ((v/hash-map
+                    {:a (v/string)
+                     :b (v/number)
+                     :c (v/string->number)})
+                   (ctx/create
+                    :input {:a "str"
                             :b 5
-                            :c 45.5}))))
+                            :c "45.5"}))]
+          (is (= res [:v/ok {:a "str"
+                             :b 5
+                             :c 45.5}]))))
+      (testing "nested hash-maps"
+        (let [res ((v/hash-map
+                    {:a (v/hash-map {:b (v/string)})})
+                   (ctx/create :input {:a {:b "str"}}))]
+          (is (= res [:v/ok {:a {:b "str"}}])))))
 
-  (testing "fails with a non-hash-map value"
-    (let [res (v/validate
-               (v/hash-map {:a (v/string)
-                            :b (v/number)
-                            :c (v/string->number)})
-               nil)]
-      (is (= (:status res) :v/fail))
-      (is (= (:errors res) [{:path [] :message "Expected hash-map, got nil"}]))
-      (is (= (:output res) nil))))
+    (testing "fails"
+      (testing "non-hash-map value"
+        (let [res (v/validate
+                   (v/hash-map {:a (v/string)
+                                :b (v/number)
+                                :c (v/string->number)})
+                   nil)]
+          (is (= (:status res) :v/fail))
+          (is (= (:errors res) [{:path [] :message "Expected hash-map, got nil"}]))
+          (is (= (:output res) nil))))))
 
   (testing "collects all errors"
     (let [res (v/validate
