@@ -7,7 +7,7 @@
    [clojure.pprint :refer [pprint]]
    [clojure.string :as s]
    [jaidetree.valhalla.context :as ctx]
-   [jaidetree.valhalla.utils :as u]))
+   [jaidetree.valhalla.utils :refer [msg-fn] :as u]))
 
 (defn ok
   [value]
@@ -71,13 +71,6 @@
                              (ctx/raise-errors errors)
                              (fail))))))
 
-(defn- msg-fn
-  [str-or-fn default-fn]
-  (cond
-    (string? str-or-fn) (constantly str-or-fn)
-    (fn? str-or-fn) str-or-fn
-    :else default-fn))
-
 (defn- with-ctx
   "
   Syntax sugar for operating on a collection within a threading macro
@@ -130,7 +123,7 @@
          (let [value (js/Number.parseFloat value)]
            (if (not (js/Number.isNaN value))
              (ok value)
-             (error (message context))))
+             (throw (js/Error. :fail))))
          (catch :default _err
            (error (message context))))))))
 
@@ -256,7 +249,7 @@
 
 (defn- reduce-validators
   [& {:keys [context validator-kvs path-index output]}]
-  (let [context (assoc context :output output)]
+  (let [context (ctx/update-output context output)]
     (->> validator-kvs
          (reduce
           (fn [ctx [key validator]]
@@ -265,8 +258,7 @@
               (result-case result
                            :ok (fn [value]
                                  (-> ctx
-                                     (assoc :value value)
-                                     (assoc-in [:output key] value)))
+                                     (ctx/accrete key value)))
                            :err (fn [error]
                                   (ctx/raise-error ctx error))
                            :errs (fn [errors]
@@ -615,3 +607,17 @@
             (default-value-or-fn context)
             default-value-or-fn))
       (validator context))))
+
+(defn lazy
+  [validator-fn & [opts]]
+  (fn [context]
+    (let [message (msg-fn (:message opts)
+                          (fn [{:keys [value]}]
+                            (str "Expected validator function, got " (u/stringify value))))]
+      (try
+        (if (fn? validator-fn)
+          (let [validator (validator-fn)]
+            (validator context))
+          (throw (js/Error. :fail)))
+        (catch :default _err
+          (error (message context)))))))

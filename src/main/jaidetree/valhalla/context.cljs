@@ -107,9 +107,12 @@
   Used after a successful validation or parse, stores the updated value and
   builds the output shape
   "
-  [ctx value]
-  (let [{:keys [path]} ctx]
-    (-> ctx
-        (update-value value)
-        (update-output value))))
+  ([ctx value]
+   (-> ctx
+       (update-value value)
+       (update-output value)))
+  ([ctx key value]
+   (-> ctx
+       (update-value value)
+       (assoc-in [:output key] value))))
 

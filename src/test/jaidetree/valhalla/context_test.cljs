@@ -129,11 +129,19 @@
         (is (= (:value res-b) {:a {:b "a-value"}}))))))
 
 (deftest accrete
-  (testing "updates both value and output"
-    (let [res (-> (ctx/create :input {:a {:b "a-value"}}
-                              :path [:a :b]
-                              :output {})
-                  (ctx/accrete "a-value"))]
-      (is (= (:value res) "a-value"))
-      (is (= (:output res) "a-value")))))
+  (testing "accrete"
+    (testing "updates both value and output"
+      (let [res (-> (ctx/create :input {:a {:b "a-value"}}
+                                :path [:a :b]
+                                :output {})
+                    (ctx/accrete "a-value"))]
+        (is (= (:value res) "a-value"))
+        (is (= (:output res) "a-value"))))
+    (testing "updates value and output with path"
+      (let [res (-> (ctx/create :input {:a {:b "a-value"}}
+                                :path [:a :b]
+                                :output {})
+                    (ctx/accrete :a "a-value"))]
+        (is (= (:value res) "a-value"))
+        (is (= (:output res) {:a "a-value"}))))))
 

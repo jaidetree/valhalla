@@ -642,3 +642,40 @@
                   :not-found)
                 (ctx/create :value "str"))
                [:v/error "Expected keyword, got \"str\""]))))))
+
+(declare task)
+
+(def task
+  (v/lazy
+   #(v/hash-map
+     {:title (v/string)
+      :tasks (v/vector task)})))
+
+(def task-data
+  {:title "Parent"
+   :tasks [{:title "Child"
+            :tasks []}]})
+
+(deftest lazy-test
+  (testing "lazy"
+    (testing "passes"
+      (testing "valid sub-validator data"
+        (is (= ((v/lazy
+                 (fn []
+                   (v/number)))
+                (ctx/create :value 5))
+               [:v/ok 5])))
+      (testing "recursive validators"
+        (is (= (task
+                (ctx/create :value task-data))
+               [:v/ok task-data]))))
+    (testing "fails"
+      (testing "non-function args"
+        (is (= ((v/lazy :kw)
+                (ctx/create :value 5))
+               [:v/error "Expected validator function, got 5"])))
+      (testing "invalid sub-validator data"
+        (is (= ((v/lazy #(v/number))
+                (ctx/create :value :kw))
+               [:v/error "Expected number, got :kw"]))))))
+

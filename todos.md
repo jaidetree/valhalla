@@ -157,26 +157,23 @@
 ## Phase 5: JS Interop
 
 ### JavaScript Interop Validators
-- [ ] Create jaidetree.valhalla.interop namespace
-- [ ] Implement js-object validator
-- [ ] Implement js-array validator
-- [ ] Implement js-array-like validator
-- [ ] Write tests for js-object validation
-- [ ] Write tests for js-array validation
-- [ ] Write tests for js-array-like validation
-- [ ] Verify all JavaScript interop validator tests pass
+- [x] Create jaidetree.valhalla.interop namespace
+- [x] Implement js-object validator
+- [x] Implement js-array validator
+- [x] Implement iterable->array validator
+- [x] Write tests for js-object validation
+- [x] Write tests for js-array validation
+- [x] Write tests for iterable->array validation
+- [x] Verify all JavaScript interop validator tests pass
 
 ## Phase 6: Advanced Features
 
 ### Lazy and Ref Validators
-- [ ] Implement lazy validator
-- [ ] Implement ref validator
-- [ ] Support for recursive schemas
-- [ ] Write tests for lazy validation
-- [ ] Write tests for ref validation
-- [ ] Write tests for recursive structures
-- [ ] Test against infinite recursion
-- [ ] Verify all lazy/ref validator tests pass
+- [x] Implement lazy validator
+- [x] Support for recursive schemas
+- [x] Write tests for lazy validation
+- [x] Write tests for recursive structures
+- [x] Verify all lazy validator tests pass
 
 ## Phase 7: Testing
 
@@ -193,9 +190,9 @@
 - [ ] Verify all performance optimization tests pass
 
 ### Integration Tests and Examples
-- [ ] Create jaidetree.valhalla.integration-test namespace in test directory
-- [ ] Implement complex user schema example
-- [ ] Implement nested structure example
+- [x] Create jaidetree.valhalla.integration-test namespace in test directory
+- [x] Implement complex user schema example
+- [x] Implement nested structure example
 - [ ] Implement recursive tree example
 - [ ] Implement JavaScript interop example
 - [ ] Write comprehensive integration tests
