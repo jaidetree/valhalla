@@ -37,14 +37,14 @@
           context))))
 
 (defn object
-  "Creates a validator that checks if a value is a JavaScript object and validates specific properties.
-   
+  "Validates if a value is a JavaScript object and validates specific properties.
+
    Arguments:
    - validators-map - A map of property names to validator functions
-   
+
    Options:
    - :message - Custom error message function or string
-   
+
    Returns a validator function that accepts a context and returns a result
    with a map of validated property-value pairs if successful."
   [validators-map & [opts]]
@@ -85,14 +85,14 @@
          context))))
 
 (defn array
-  "Creates a validator that checks if a value is a JavaScript array and validates each element.
-   
+  "Validates if a value is a JavaScript array and validates each element.
+
    Arguments:
    - validator - A validator function to apply to each element
-   
+
    Options:
    - :message - Custom error message function or string
-   
+
    Returns a validator function that accepts a context and returns a result
    with an array of validated elements if successful."
   [validator & [opts]]
@@ -132,14 +132,14 @@
           context))))
 
 (defn array-tuple
-  "Creates a validator that checks if a value is a JavaScript array with specific validators for each position.
-   
+  "Validates if a value is a JavaScript array with specific validators for each position.
+
    Arguments:
    - validators-seq - A sequence of validator functions, one for each position
-   
+
    Options:
    - :message - Custom error message function or string
-   
+
    Returns a validator function that accepts a context and returns a result
    with an array of validated elements if successful. The input array must have
    the same length as the validators sequence."
@@ -161,11 +161,11 @@
         (error (message context))))))
 
 (defn iterable->array
-  "Creates a validator that converts a JavaScript iterable object to an array.
-   
+  "Converts a JavaScript iterable object to an array.
+
    Options:
    - :message - Custom error message function or string
-   
+
    Returns a validator function that accepts a context and returns a result
    with a JavaScript array created from the iterable if successful."
   ([] (iterable->array {}))
