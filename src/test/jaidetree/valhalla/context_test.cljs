@@ -105,12 +105,7 @@
   (testing "update context output"
     (let [res (-> (ctx/create)
                   (ctx/update-output "output"))]
-      (is (= (:output res) "output"))))
-
-  (testing "update output with path"
-    (let [res (-> (ctx/create :output {})
-                  (ctx/update-output [:a :b] "output"))]
-      (is (= (:output res) {:a {:b "output"}})))))
+      (is (= (:output res) "output")))))
 
 (deftest enter-path-test
   (testing "updates both path and value"
@@ -140,5 +135,5 @@
                               :output {})
                   (ctx/accrete "a-value"))]
       (is (= (:value res) "a-value"))
-      (is (= (:output res) {:a {:b "a-value"}})))))
+      (is (= (:output res) "a-value")))))
 

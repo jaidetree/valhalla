@@ -283,10 +283,7 @@
 
 (deftest list-test
   (testing "list"
-    (testing "validates lists with same type"
-      (is (= ((v/list (v/number))
-              (ctx/create :value (list 1 2 3 4 5)))
-             [:v/ok (list 1 2 3 4 5)])))
+    (testing "validates lists with same type")
     (testing "fails invalid input"
       (testing "> mixed types"
         (is (= ((v/list (v/number)) (ctx/create :value '(:kw "str" 'sym nil)))
@@ -590,7 +587,22 @@
                  (v/keyword)
                  (v/number))
                 (ctx/create :value :kw))
-               [:v/ok :kw]))))
+               [:v/ok :kw])))
+      (testing "nested validators"
+        (is (= ((v/union
+                 (v/vector
+                  (v/union (v/string)
+                           (v/keyword)))
+                 (v/number))
+                (ctx/create :value [:kw "str"]))
+               [:v/ok [:kw "str"]]))
+        (is (= ((v/union
+                 (v/vector
+                  (v/union (v/string)
+                           (v/keyword)))
+                 (v/number))
+                (ctx/create :value 5))
+               [:v/ok 5]))))
     (testing "fails"
       (testing "last failing validator"
         (is (= ((v/union

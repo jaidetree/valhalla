@@ -52,13 +52,8 @@
         ctx)))
 
 (defn update-output
-  ([ctx output]
-   (if (vector? output)
-     (let [[path value] output]
-       (update-output ctx path value))
-     (update-output ctx (:path ctx) output)))
-  ([ctx path value]
-   (assoc-in ctx (cons :output path) value)))
+  [ctx output]
+  (assoc ctx :output output))
 
 (defn update-path
   [ctx path]
@@ -89,12 +84,6 @@
   ([ctx idx path]
    (let [prev-path (vec (take idx (:path ctx)))
          new-path (conj prev-path path)]
-     (pprint
-      {:replace-path
-       {:prev-path prev-path
-        :next-path new-path
-        :value-prev (get-in ctx (cons :input prev-path))
-        :value-next (get-in ctx (cons :input new-path))}})
      (-> ctx
          (update-path new-path)
          (update-value (get-in ctx (cons :input new-path)))))))
@@ -122,5 +111,5 @@
   (let [{:keys [path]} ctx]
     (-> ctx
         (update-value value)
-        (update-output path value))))
+        (update-output value))))
 

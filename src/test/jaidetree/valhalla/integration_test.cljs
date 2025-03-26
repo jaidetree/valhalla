@@ -20,7 +20,7 @@
                         :time (v/date->string)})})
    (v/hash-map
     {:type (v/literal "clock-out")
-     :data (v/hash-map {:id (v/string)
+     :data (v/hash-map {:id (v/numeric)
                         :time (v/chain
                                (v/date)
                                (v/date->string))})})))
@@ -40,6 +40,9 @@
     :tuple (v/vector-tuple
             [(v/number)
              (v/string)])
+    :state (v/hash-map
+            {:status (v/enum [:loading :running :closing])
+             :id (v/string)})
     :tasks (v/vector task)
     :action action}))
 
@@ -47,6 +50,8 @@
   {:kw :kw
    :str "str"
    :tuple [5 "str"]
+   :state {:status :loading
+           :id "xyz-123"}
    :tasks [{:id "test"
             :title "Task"
             :status :todo}]
@@ -58,7 +63,22 @@
   (testing "vector of hash-maps"
     (testing "passes"
       (let [result (v/validate validator-1 test-data-1)]
-        (pprint result)
-        (is
-         (= (get-in result [:output])
-            test-data-1))))))
+        (is (= (get-in result [:output])
+               test-data-1))))))
+
+(deftest composite-test
+  (testing "complex hash-map"
+    (let [result (v/validate validator-2 test-data-2)]
+      (is (= nil (:errors result)))
+      (is (= (:output result)
+             {:kw :kw
+              :str "str"
+              :tuple [5 "str"]
+              :state {:status :loading
+                      :id "xyz-123"}
+              :tasks [{:id "test"
+                       :title "Task"
+                       :status :todo}]
+              :action {:type "clock-in"
+                       :data {:id "123"
+                              :time "2025-03-25T19:45:32.578Z"}}})))))

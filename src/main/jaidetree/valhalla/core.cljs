@@ -260,16 +260,13 @@
     (->> validator-kvs
          (reduce
           (fn [ctx [key validator]]
-            (let [_ (pprint {:before ctx})
-                  ctx (ctx/replace-path ctx path-index key)
-                  _ (pprint {:after ctx})
+            (let [ctx (ctx/replace-path ctx path-index key)
                   result (validator ctx)]
               (result-case result
                            :ok (fn [value]
                                  (-> ctx
                                      (assoc :value value)
-                                     (assoc-in [:output key] value)
-                                     #_(doto pprint)))
+                                     (assoc-in [:output key] value)))
                            :err (fn [error]
                                   (ctx/raise-error ctx error))
                            :errs (fn [errors]
@@ -291,7 +288,7 @@
                      :validator-kvs (map-indexed cc/vector (repeat (count value) validator))
                      :output []})]
            (if (empty? (:errors ctx))
-             (ok (vec (vals (:output ctx))))
+             (ok (vec (:output ctx)))
              (errors (:errors ctx))))
          (error (message context)))))))
 
@@ -313,7 +310,7 @@
                      :validator-kvs (map-indexed cc/vector validators)
                      :output []})]
            (if (empty? (:errors ctx))
-             (ok (vec (vals (:output ctx))))
+             (ok (vec (:output ctx)))
              (errors (:errors ctx))))
 
          (error (message context)))))))
@@ -355,7 +352,7 @@
                      :validator-kvs (map-indexed cc/vector validators)
                      :output []})]
            (if (empty? (:errors ctx))
-             (ok (vals (:output ctx)))
+             (ok (seq (:output ctx)))
              (errors (:errors ctx))))
          (error (message context)))))))
 
@@ -372,9 +369,9 @@
                    {:context context
                     :path-index idx
                     :validator-kvs (map-indexed cc/list (repeat (count value) validator))
-                    :output #{}})]
+                    :output []})]
           (if (empty? (:errors ctx))
-            (ok (into #{} (vals (:output ctx))))
+            (ok (into #{} (:output ctx)))
             (errors (:errors ctx))))
         (error (message context))))))
 
