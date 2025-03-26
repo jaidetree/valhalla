@@ -331,8 +331,48 @@
 (deftest hash-map-test
   (testing "hash-map"
     (testing "passes"
-      (testing "valid hash-map values"
-        (let [res ((v/hash-map
+      (testing "valid key and value validators"
+        (is (= ((v/hash-map (v/keyword) (v/number))
+                (ctx/create :value {:a 1
+                                    :b 2
+                                    :c 3}))
+               [:v/ok {:a 1
+                       :b 2
+                       :c 3}])))
+      (testing "valid value validator"
+        (is (= ((v/hash-map (v/number))
+                (ctx/create :value {:a 1
+                                    :b 2
+                                    :c 3}))
+               [:v/ok {:a 1
+                       :b 2
+                       :c 3}]))))
+    (testing "fails"
+      (testing "invalid hash-map value"
+        (is (= ((v/hash-map (v/keyword) (v/number))
+                (ctx/create :value
+                            (seq {:a 1
+                                  :b 2
+                                  :c 3})))
+               [:v/error "Expected hash-map, got ([:a 1] [:b 2] [:c 3])"])))
+      (testing "invalid sub-validator input"
+        (is (= ((v/hash-map (v/number))
+                (ctx/create :value {1 :a
+                                    2 :b
+                                    3 :c}))
+               [:v/errors
+                [{:path [0 0] :message "Expected keyword, got 1"}
+                 {:path [0 1] :message "Expected number, got :a"}
+                 {:path [1 0] :message "Expected keyword, got 2"}
+                 {:path [1 1] :message "Expected number, got :b"}
+                 {:path [2 0] :message "Expected keyword, got 3"}
+                 {:path [2 1] :message "Expected number, got :c"}]]))))))
+
+(deftest record-test
+  (testing "record"
+    (testing "passes"
+      (testing "valid record values"
+        (let [res ((v/record
                     {:a (v/string)
                      :b (v/number)
                      :c (v/string->number)})
@@ -343,28 +383,28 @@
           (is (= res [:v/ok {:a "str"
                              :b 5
                              :c 45.5}]))))
-      (testing "nested hash-maps"
-        (let [res ((v/hash-map
-                    {:a (v/hash-map {:b (v/string)})})
+      (testing "nested records"
+        (let [res ((v/record
+                    {:a (v/record {:b (v/string)})})
                    (ctx/create :input {:a {:b "str"}}))]
           (is (= res [:v/ok {:a {:b "str"}}])))))
 
     (testing "fails"
       (testing "non-hash-map value"
         (let [res (v/validate
-                   (v/hash-map {:a (v/string)
-                                :b (v/number)
-                                :c (v/string->number)})
+                   (v/record {:a (v/string)
+                              :b (v/number)
+                              :c (v/string->number)})
                    nil)]
           (is (= (:status res) :v/fail))
-          (is (= (:errors res) [{:path [] :message "Expected hash-map, got nil"}]))
+          (is (= (:errors res) [{:path [] :message "Expected record, got nil"}]))
           (is (= (:output res) nil))))))
 
   (testing "collects all errors"
     (let [res (v/validate
-               (v/hash-map {:a (v/string)
-                            :b (v/number)
-                            :c (v/string->number)})
+               (v/record {:a (v/string)
+                          :b (v/number)
+                          :c (v/string->number)})
                {:a 5
                 :b "5"
                 :c "abc"})]
@@ -376,10 +416,10 @@
 
   (testing "supports custom error messages"
     (let [res (v/validate
-               (v/hash-map {:a (v/string)
-                            :b (v/number {:message (fn [{:keys [value]}]
-                                                     (str "Expected it to be cool, but it's not " (pr-str value)))})
-                            :c (v/string->number)})
+               (v/record {:a (v/string)
+                          :b (v/number {:message (fn [{:keys [value]}]
+                                                   (str "Expected it to be cool, but it's not " (pr-str value)))})
+                          :c (v/string->number)})
                {:a 5
                 :b "5"
                 :c "abc"})]
@@ -647,7 +687,7 @@
 
 (def task
   (v/lazy
-   #(v/hash-map
+   #(v/record
      {:title (v/string)
       :tasks (v/vector task)})))
 

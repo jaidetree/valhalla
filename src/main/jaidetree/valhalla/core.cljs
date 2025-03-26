@@ -531,11 +531,94 @@
             (errors (:errors ctx))))
         (error (message context))))))
 
+(defn- extract-errors
+  [status result]
+  (result-case
+   [status result]
+   :ok (fn [_value] [])
+   :err (fn [error]
+          [error])
+   :errors (fn [errors]
+             errors)))
+
+(defn- hash-map-error
+  [err ctx path]
+  (if (string? err)
+    {:path (conj (:path ctx) path) :message err}
+    (update err :path conj path)))
+
+(defn- hash-map-validators
+  [& {:keys [context k-val v-val path-index]}]
+  (let [context (ctx/update-output context {})]
+    (->> (:value context)
+         (reduce
+          (fn [ctx [key value]]
+            (let [index (:index ctx)
+                  ctx (-> ctx
+                          (ctx/replace-path path-index index))
+                  [k-status k-result]
+                  (-> ctx
+                      #_(ctx/replace-path path-index index)
+                      (ctx/update-value key)
+                      (k-val))
+                  [v-status v-result]
+                  (-> ctx
+                      (ctx/replace-path path-index key)
+                      (ctx/update-value value)
+                      (v-val))]
+
+              (if (and (= k-status :v/ok) (= v-status :v/ok))
+                (-> ctx
+                    (update :index inc)
+                    (ctx/accrete k-result v-result))
+                (let [k-errors (->> (extract-errors k-status k-result)
+                                    (map #(hash-map-error % ctx 0)))
+                      v-errors (->> (extract-errors v-status v-result)
+                                    (map #(hash-map-error % ctx 1)))
+                      errors (concat k-errors v-errors)]
+                  (-> ctx
+                      (update :index inc)
+                      (ctx/raise-errors errors))))))
+          (assoc context :index 0)))))
+
 (defn hash-map
-  "Validates if a value is a map and validates specific keys.
+  "Validates if a value is a hash-map with a key and value type.
 
    Arguments:
-   - validators-map - A map of keys to validator functions
+   - key - A key validator function
+   - value - A value validator function
+
+   Options:
+   - :message - Custom error message function or string
+
+   Returns a validator function that accepts a context and returns a result
+   with a hash-map of unknown size."
+  ([value-validator]  (hash-map (keyword) value-validator {}))
+  ([key-validator value-validator]  (hash-map key-validator value-validator {}))
+  ([key-validator value-validator opts]
+   (cc/assert (fn? key-validator) "Key validator must be a function")
+   (cc/assert (fn? value-validator) "Value validator must be a function")
+   (fn [{:keys [value] :as context}]
+     (let [message (msg-fn (:message opts)
+                           (fn [{:keys [value]}]
+                             (str "Expected hash-map, got " (u/stringify value))))]
+       (if (map? value)
+         (let [idx (count (:path context))
+               ctx (hash-map-validators
+                    {:context context
+                     :path-index idx
+                     :k-val key-validator
+                     :v-val value-validator})]
+           (if (empty? (:errors ctx))
+             (ok (:output ctx))
+             (errors (:errors ctx))))
+         (error (message context)))))))
+
+(defn record
+  "Validates if a value is a hash-map and validates specific keys.
+
+   Arguments:
+   - validators-map - A hash-map of keys to validator functions
 
    Options:
    - :message - Custom error message function or string
@@ -546,7 +629,7 @@
   (fn [{:keys [value] :as context}]
     (let [message (msg-fn (:message opts)
                           (fn [{:keys [value]}]
-                            (str "Expected hash-map, got " (u/stringify value))))]
+                            (str "Expected record, got " (u/stringify value))))]
       (if (not (map? value))
         (error (message context))
         (let [idx (count (:path context))
