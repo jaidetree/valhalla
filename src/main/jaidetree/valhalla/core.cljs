@@ -10,28 +10,46 @@
    [jaidetree.valhalla.utils :refer [msg-fn] :as u]))
 
 (defn ok
+  "Creates a success result with the given value.
+   
+   Returns a vector with :v/ok status and the value."
   [value]
   [:v/ok value])
 
 (defn error
+  "Creates an error result with the given message.
+   
+   Returns a vector with :v/error status and the error message."
   [message]
   [:v/error message])
 
 (defn errors
+  "Creates a result containing multiple errors.
+   
+   Returns a vector with :v/errors status and a collection of error messages."
   [errors]
   [:v/errors errors])
 
 (defn ok?
+  "Checks if a result is successful.
+   
+   Returns true if the result has :v/ok status, false otherwise."
   [[status _value]]
   (= status :v/ok))
 
 (defn pass
+  "Creates a successful validation result.
+   
+   Returns a map with :v/pass status and the input and output values."
   [& {:keys [input output]}]
   {:status :v/pass
    :input  input
    :output output})
 
 (defn fail
+  "Creates a failed validation result.
+   
+   Returns a map with :v/fail status, the input value, and error messages."
   [& {:keys [input errors]}]
   {:status :v/fail
    :errors errors
@@ -39,6 +57,10 @@
    :output nil})
 
 (defn result-case
+  "Pattern matches on a validation result and applies the appropriate handler function.
+   
+   Takes a result vector [status value] and handler functions for each possible status.
+   Returns the result of applying the matching handler to the value."
   [[status val-or-msg] & {:keys [ok err errs]
                           :or {ok identity
                                err identity
@@ -50,10 +72,17 @@
     (throw (js/Error. (str "Could not match status type " (u/stringify status))))))
 
 (defn valid?
+  "Checks if a validation result is successful.
+   
+   Returns true if the result has :v/pass status, false otherwise."
   [result]
   (= (:status result) :v/pass))
 
 (defn validate
+  "Validates an input value using the provided validator function.
+   
+   Creates a validation context with the input, applies the validator,
+   and returns a validation result map (pass or fail)."
   [validator-fn input & [opts]]
   (let [context (ctx/create :input input)
         result (validator-fn context)]
@@ -79,6 +108,12 @@
   (f ctx))
 
 (defn string
+  "Creates a validator that checks if a value is a string.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result."
   ([] (string {}))
   ([opts]
    (fn [{:keys [value _path] :as context}]
@@ -90,6 +125,12 @@
          (error (message context)))))))
 
 (defn number
+  "Creates a validator that checks if a value is a number.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result."
   ([] (number {}))
   ([opts]
    (fn [{:keys [value] :as context}]
@@ -101,6 +142,13 @@
          (error (message context)))))))
 
 (defn numeric
+  "Creates a validator that checks if a value can be parsed as a number.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result.
+   The original string value is returned if valid."
   ([] (numeric {}))
   ([opts]
    (fn [{:keys [value] :as context}]
@@ -113,6 +161,13 @@
          (error (message context)))))))
 
 (defn string->number
+  "Creates a validator that converts a string to a number.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with the parsed number value if successful."
   ([] (string->number {}))
   ([opts]
    (fn [{:keys [value] :as context}]
@@ -128,6 +183,12 @@
            (error (message context))))))))
 
 (defn boolean
+  "Creates a validator that checks if a value is a boolean.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result."
   ([] (boolean {}))
   ([opts]
    (fn [{:keys [value] :as context}]
@@ -139,6 +200,13 @@
          (error (message context)))))))
 
 (defn string->boolean
+  "Creates a validator that converts a string ('true' or 'false') to a boolean.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with the parsed boolean value if successful."
   ([] (string->boolean {}))
   ([opts]
    (fn [{:keys [value] :as context}]
@@ -157,6 +225,12 @@
            (error (message context))))))))
 
 (defn keyword
+  "Creates a validator that checks if a value is a keyword.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result."
   ([] (keyword {}))
   ([opts]
    (fn [{:keys [value] :as context}]
@@ -168,6 +242,14 @@
          (error (message context)))))))
 
 (defn string->keyword
+  "Creates a validator that converts a string to a keyword.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with the converted keyword if successful. The string must match the pattern
+   for valid keywords (optionally starting with ':' followed by valid characters)."
   ([] (string->keyword {}))
   ([opts]
    (fn [{:keys [value] :as context}]
@@ -184,6 +266,12 @@
              (error (message context)))))))))
 
 (defn symbol
+  "Creates a validator that checks if a value is a symbol.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result."
   ([] (symbol {}))
   ([opts]
    (fn [{:keys [value] :as context}]
@@ -195,6 +283,14 @@
          (error (message context)))))))
 
 (defn string->symbol
+  "Creates a validator that converts a string to a symbol.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with the converted symbol if successful. The string must match the pattern
+   for valid symbols (starting with a letter followed by valid characters)."
   ([] (string->symbol {}))
   ([opts]
    (fn [{:keys [value] :as context}]
@@ -210,6 +306,16 @@
              (error (message context)))))))))
 
 (defn regex
+  "Creates a validator that checks if a string matches a regular expression pattern.
+   
+   Arguments:
+   - regex-str - The regular expression pattern as a string
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with the original string if it matches the pattern."
   ([regex-str]
    (regex regex-str {}))
   ([regex-str opts]
@@ -229,6 +335,13 @@
              (error (message context)))))))))
 
 (defn uuid
+  "Creates a validator that checks if a string is a valid UUID.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with the original UUID string if valid."
   ([] (uuid {}))
   ([opts]
    (regex "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
@@ -237,6 +350,12 @@
                              (str "Expected UUID string, got " (u/stringify value)))}))))
 
 (defn nil-value
+  "Creates a validator that checks if a value is nil.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result."
   ([] (nil-value {}))
   ([opts]
    (fn [{:keys [value] :as context}]
@@ -266,6 +385,16 @@
           context))))
 
 (defn vector
+  "Creates a validator that checks if a value is a vector and validates each element.
+   
+   Arguments:
+   - validator - A validator function to apply to each element
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with a vector of validated elements if successful."
   ([validator & [opts]]
    (cc/assert (fn? validator) "Validator is not a function")
    (fn [{:keys [value] :as context}]
@@ -285,6 +414,17 @@
          (error (message context)))))))
 
 (defn vector-tuple
+  "Creates a validator that checks if a value is a vector with specific validators for each position.
+   
+   Arguments:
+   - validators - A vector of validator functions, one for each position
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with a vector of validated elements if successful. The input vector must have
+   the same length as the validators vector."
   ([validators & [opts]]
    (cc/assert (vector? validators) "Validators are not a vector")
    (fn [{:keys [value] :as context}]
@@ -308,6 +448,16 @@
          (error (message context)))))))
 
 (defn list
+  "Creates a validator that checks if a value is a list and validates each element.
+   
+   Arguments:
+   - validator - A validator function to apply to each element
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with a sequence of validated elements if successful."
   ([validator & [opts]]
    (cc/assert (fn? validator) "Validator is not a function")
    (fn [{:keys [value] :as context}]
@@ -327,6 +477,17 @@
          (error (message context)))))))
 
 (defn list-tuple
+  "Creates a validator that checks if a value is a list with specific validators for each position.
+   
+   Arguments:
+   - validators - A sequence of validator functions, one for each position
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with a sequence of validated elements if successful. The input list must have
+   the same length as the validators sequence."
   ([validators & [opts]]
    (cc/assert (sequential? validators) "Validators are not a vector")
    (fn [{:keys [value] :as context}]
@@ -349,6 +510,16 @@
          (error (message context)))))))
 
 (defn set
+  "Creates a validator that checks if a value is a set and validates each element.
+   
+   Arguments:
+   - validator - A validator function to apply to each element
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with a set of validated elements if successful."
   [validator & [opts]]
   (cc/assert (fn? validator) "Validator is not a function")
   (fn [{:keys [value] :as context}]
@@ -368,6 +539,16 @@
         (error (message context))))))
 
 (defn hash-map
+  "Creates a validator that checks if a value is a map and validates specific keys.
+   
+   Arguments:
+   - validators-map - A map of keys to validator functions
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with a map of validated key-value pairs if successful."
   [validators-map & [opts]]
   (fn [{:keys [value] :as context}]
     (let [message (msg-fn (:message opts)
@@ -386,6 +567,16 @@
             (errors (:errors ctx))))))))
 
 (defn assert
+  "Creates a validator that checks if a value satisfies a predicate function.
+   
+   Arguments:
+   - pred? - A predicate function that returns true for valid values
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with the original value if the predicate returns true."
   ([pred?] (assert pred? {}))
   ([pred? opts]
    (cc/assert (fn? pred?) "Predicate must be a function")
@@ -401,6 +592,16 @@
            (error (message context))))))))
 
 (defn instance
+  "Creates a validator that checks if a value is an instance of a specific class.
+   
+   Arguments:
+   - class-fn - A JavaScript constructor function or class
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with the original value if it's an instance of the specified class."
   ([class-fn] (instance class-fn {}))
   ([class-fn opts]
    (cc/assert (js-fn? class-fn) "Class function required")
@@ -422,6 +623,13 @@
 
 ;; @TODO Clean up with chain?
 (defn date
+  "Creates a validator that checks if a value is a valid JavaScript Date object.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with the original Date object if valid."
   [& [opts]]
   (fn [context]
     (let [result ((instance js/Date) context)
@@ -437,6 +645,13 @@
                    :errs errors))))
 
 (defn string->date
+  "Creates a validator that converts a string to a JavaScript Date object.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with a Date object if the string can be parsed as a valid date."
   ([] (string->date {}))
   ([opts]
    (fn [{:keys [value] :as context}]
@@ -453,6 +668,13 @@
            (error (message context))))))))
 
 (defn number->date
+  "Creates a validator that converts a number (timestamp) to a JavaScript Date object.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with a Date object if the number represents a valid timestamp."
   ([] (number->date {}))
   ([opts]
    (fn [{:keys [value] :as context}]
@@ -469,6 +691,13 @@
            (error (message context))))))))
 
 (defn date->string
+  "Creates a validator that converts a JavaScript Date object to an ISO string.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with the ISO string representation of the date."
   ([] (date->string {}))
   ([opts]
    (fn [{:keys [value] :as context}]
@@ -483,6 +712,13 @@
            (error (message context))))))))
 
 (defn date->number
+  "Creates a validator that converts a JavaScript Date object to a timestamp number.
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with the timestamp (milliseconds since epoch) of the date."
   ([] (date->number {}))
   ([opts]
    (fn [{:keys [value] :as context}]
@@ -497,6 +733,13 @@
            (error (message context))))))))
 
 (defn nilable
+  "Creates a validator that allows nil values or validates non-nil values.
+   
+   Arguments:
+   - validator - A validator function to apply to non-nil values
+   
+   Returns a validator function that accepts a context and returns a result
+   with nil for nil values or the result of applying the validator to non-nil values."
   [validator]
   (fn [{:keys [value] :as context}]
     (if (nil? value)
@@ -504,6 +747,16 @@
       (validator context))))
 
 (defn enum
+  "Creates a validator that checks if a value is one of a set of keywords.
+   
+   Arguments:
+   - kws - A collection of keywords representing valid enum values
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with the original keyword if it's one of the specified enum values."
   ([kws] (enum kws {}))
   ([kws opts]
    (cc/assert (every? keyword? kws) "Enum values must be keywords")
@@ -520,6 +773,16 @@
            (error (message context))))))))
 
 (defn literal
+  "Creates a validator that checks if a value equals an expected literal value.
+   
+   Arguments:
+   - expected - The exact value to match against
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result
+   with the original value if it equals the expected value."
   ([expected] (literal expected {}))
   ([expected opts]
    (fn [{:keys [value] :as context}]
@@ -556,6 +819,14 @@
         context)))
 
 (defn chain
+  "Creates a validator that applies multiple validators in sequence.
+   
+   Arguments:
+   - validators - A sequence of validator functions to apply in order
+   
+   Returns a validator function that accepts a context and returns a result.
+   Each validator is applied to the result of the previous validator.
+   If any validator fails, the chain stops and returns the error."
   [& validators]
   (fn [{:keys [] :as context}]
     (let [ctx (chain-validators
@@ -590,6 +861,14 @@
         context)))
 
 (defn union
+  "Creates a validator that tries multiple validators and succeeds if any one succeeds.
+   
+   Arguments:
+   - validators - A sequence of validator functions to try
+   
+   Returns a validator function that accepts a context and returns a result.
+   Each validator is tried in order until one succeeds. If all validators fail,
+   returns the errors from the last validator."
   [& validators]
   (fn [{:keys [_value] :as context}]
     (let [ctx (union-validators
@@ -600,6 +879,15 @@
         (errors (:errors ctx))))))
 
 (defn default
+  "Creates a validator that provides a default value for nil inputs.
+   
+   Arguments:
+   - validator - A validator function to apply to non-nil values
+   - default-value-or-fn - A value or function to use as default for nil values
+   
+   Returns a validator function that accepts a context and returns a result.
+   If the input is nil, returns the default value or the result of calling
+   the default function with the context."
   [validator default-value-or-fn]
   (fn [{:keys [value] :as context}]
     (if (nil? value)
@@ -609,6 +897,17 @@
       (validator context))))
 
 (defn lazy
+  "Creates a validator that lazily evaluates a validator function.
+   
+   Arguments:
+   - validator-fn - A function that returns a validator function
+   
+   Options:
+   - :message - Custom error message function or string
+   
+   Returns a validator function that accepts a context and returns a result.
+   The validator-fn is called to get the actual validator only when needed,
+   which allows for recursive validator definitions."
   [validator-fn & [opts]]
   (fn [context]
     (let [message (msg-fn (:message opts)
