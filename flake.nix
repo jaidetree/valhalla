@@ -13,6 +13,7 @@
     {
       devShell = pkgs.mkShell {
         buildInputs = [
+          pkgs.aider-chat
           pkgs.clj-kondo
           pkgs.clojure
           pkgs.clojure-lsp

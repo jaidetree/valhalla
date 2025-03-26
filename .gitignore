@@ -2,3 +2,4 @@
 .lsp
 .shadow-cljs
 build/
+.aider*
