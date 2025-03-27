@@ -1,6 +1,6 @@
 # Valhalla
 
-A ClojureScript validation library for parsing and validating data with an emphasis on intuitive interfaces and excellent JavaScript interoperability.
+A ClojureScript validation library for parsing and validating data with an emphasis on intuitive interfaces and JavaScript interoperability.
 
 ## Introduction
 
@@ -10,7 +10,7 @@ Valhalla is a ClojureScript validation library designed to make data validation 
 
 While [clojure.spec](https://clojure.org/guides/spec) is a powerful tool for data validation, Valhalla offers several advantages:
 
-- **More intuitive interface**: Valhalla provides a simpler, more direct API that's easier to learn and use
+- **Intuitive interface**: Valhalla provides a simpler, more direct API that's easier to learn and use
 - **Improved JS interop**: First-class support for JavaScript data structures and seamless conversion between JS and ClojureScript
 - **User-friendly error messages**: Detailed, customizable error messages that help users understand what went wrong
 
@@ -21,13 +21,13 @@ Add Valhalla to your project using your preferred dependency management tool:
 ### deps.edn
 
 ```clojure
-{:deps {jaidetree/valhalla {:mvn/version "0.1.0"}}}
+{:deps {dev.jaidetree/valhalla {:mvn/version "0.1.0"}}}
 ```
 
 ### Leiningen/Boot
 
 ```clojure
-[jaidetree/valhalla "0.1.0"]
+[dev.jaidetree/valhalla "0.1.0"]
 ```
 
 ## Example
