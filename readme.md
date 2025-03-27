@@ -21,13 +21,13 @@ Add Valhalla to your project using your preferred dependency management tool:
 ### deps.edn
 
 ```clojure
-{:deps {jaidetree/valhalla {:mvn/version "0.1.0"}}}
+{:deps {dev.jaide/valhalla {:mvn/version "0.1.0"}}}
 ```
 
 ### Leiningen/Boot
 
 ```clojure
-[jaidetree/valhalla "0.1.0"]
+[dev.jaide/valhalla "0.1.0"]
 ```
 
 ## Example
@@ -38,7 +38,7 @@ Here's a quick example to get you started with Valhalla:
 
 ```clojure
 (ns my-app.core
-  (:require [jaidetree.valhalla.core :as v]))
+  (:require [dev.jaide.valhalla.core :as v]))
 
 ;; Define a validation schema
 (def user-schema
@@ -97,7 +97,7 @@ Valhalla makes it easy to work with JavaScript data:
 
 ```clojure
 (ns my-app.core
-  (:require [jaidetree.valhalla.js :as jsv]))
+  (:require [dev.jaide.valhalla.js :as jsv]))
 
 ;; Define a schema for JS objects
 (def js-user-schema
@@ -326,7 +326,7 @@ A validator in Valhalla is a function that takes a value and returns either the 
 
 ```clojure
 (ns my-app.validators
-  (:require [jaidetree.valhalla.core :as v]))
+  (:require [dev.jaide.valhalla.core :as v]))
 
 (defn email-validator
   "Validates that a string is a valid email address"

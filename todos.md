@@ -6,8 +6,8 @@
 - [x] Create project directory structure
 - [x] Create deps.edn file with dependencies
 - [x] Setup test runner configuration
-- [x] Create initial namespaces (jaidetree.valhalla.core) for core functionality
-- [x] Create test namespaces (jaidetree.valhalla.core-test)
+- [x] Create initial namespaces (dev.jaide.valhalla.core) for core functionality
+- [x] Create test namespaces (dev.jaide.valhalla.core-test)
 - [x] Verify project setup with a simple "hello world" test
 
 ### Core Result Types
@@ -157,7 +157,7 @@
 ## Phase 5: JS Interop
 
 ### JavaScript Interop Validators
-- [x] Create jaidetree.valhalla.interop namespace
+- [x] Create dev.jaide.valhalla.interop namespace
 - [x] Implement js-object validator
 - [x] Implement js-array validator
 - [x] Implement iterable->array validator
@@ -178,7 +178,7 @@
 ## Phase 7: Testing
 
 ### Performance Optimization
-- [ ] Create jaidetree.valhalla.perf namespace
+- [ ] Create dev.jaide.valhalla.perf namespace
 - [ ] Implement lazy validation mode
 - [ ] Implement validator memoization
 - [ ] Implement schema compilation
@@ -190,7 +190,7 @@
 - [ ] Verify all performance optimization tests pass
 
 ### Integration Tests and Examples
-- [x] Create jaidetree.valhalla.integration-test namespace in test directory
+- [x] Create dev.jaide.valhalla.integration-test namespace in test directory
 - [x] Implement complex user schema example
 - [x] Implement nested structure example
 - [ ] Implement recursive tree example

@@ -1,5 +1,6 @@
+.aider*
 .clj-kondo
+.cpcache
 .lsp
 .shadow-cljs
 build/
-.aider*

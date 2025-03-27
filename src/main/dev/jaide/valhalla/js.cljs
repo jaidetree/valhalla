@@ -1,10 +1,10 @@
-(ns jaidetree.valhalla.js
+(ns dev.jaide.valhalla.js
   (:refer-clojure :exclude [array])
   (:require
    [clojure.pprint :refer [pprint]]
-   [jaidetree.valhalla.core :refer [error ok errors result-case]]
-   [jaidetree.valhalla.context :as ctx]
-   [jaidetree.valhalla.utils :refer [msg-fn] :as u]))
+   [dev.jaide.valhalla.core :refer [error ok errors result-case]]
+   [dev.jaide.valhalla.context :as ctx]
+   [dev.jaide.valhalla.utils :refer [msg-fn] :as u]))
 
 (defn replace-path
   [ctx idx path]

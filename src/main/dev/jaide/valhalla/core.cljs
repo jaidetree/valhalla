@@ -1,4 +1,4 @@
-(ns jaidetree.valhalla.core
+(ns dev.jaide.valhalla.core
   (:refer-clojure :exclude [assert hash-map boolean
                             keyword list set symbol
                             uuid vector])
@@ -6,8 +6,8 @@
    [clojure.core :as cc]
    [clojure.pprint :refer [pprint]]
    [clojure.string :as s]
-   [jaidetree.valhalla.context :as ctx]
-   [jaidetree.valhalla.utils :refer [msg-fn] :as u]))
+   [dev.jaide.valhalla.context :as ctx]
+   [dev.jaide.valhalla.utils :refer [msg-fn] :as u]))
 
 (defn ok
   "Creates a success result with the given value.

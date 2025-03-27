@@ -1,8 +1,8 @@
-(ns jaidetree.valhalla.integration-test
+(ns dev.jaide.valhalla.integration-test
   (:require
    [clojure.pprint :refer [pprint]]
    [cljs.test :refer [deftest testing is]]
-   [jaidetree.valhalla.core :as v]))
+   [dev.jaide.valhalla.core :as v]))
 
 (def task
   (v/record

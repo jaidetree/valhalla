@@ -106,7 +106,7 @@ Write the code for these files with minimal implementations to verify the setup 
 Now let's implement the core result types for our validation library. In our library, validation functions will return either a success or failure result.
 
 ## Task
-Implement the core result types and functions in the `jaidetree.valhalla.core` namespace:
+Implement the core result types and functions in the `dev.jaide.valhalla.core` namespace:
 
 1. Success result: `{:result :v/ok, :data <validated-data>}`
 2. Failure result: `{:result :v/fail, :errors [[[:path] "Error message"]], :data <input-data>}`
@@ -114,7 +114,7 @@ Implement the core result types and functions in the `jaidetree.valhalla.core` n
 4. Implement `error` function that creates a failure result with a message
 
 ## Test Cases
-Create tests in `jaidetree.valhalla.core-test` namespace that verify:
+Create tests in `dev.jaide.valhalla.core-test` namespace that verify:
 1. `(ok value)` returns `{:result :v/ok, :data value}`
 2. `(error "message")` returns `{:result :v/fail, :errors [[[] "message"]], :data nil}`
 3. `(error "message" value)` returns `{:result :v/fail, :errors [[[] "message"]], :data value}`
@@ -133,7 +133,7 @@ Create tests in `jaidetree.valhalla.core-test` namespace that verify:
 Let's implement the context object that will be passed to all validators. The context object contains information about the current validation process.
 
 ## Task
-Extend the `jaidetree.valhalla.core` namespace to implement:
+Extend the `dev.jaide.valhalla.core` namespace to implement:
 
 1. Context object structure: `{:value <current-value>, :path [<path-elements>], :data <complete-data>}`
 2. Function `make-context` to create a new context object
@@ -161,7 +161,7 @@ Add tests that verify:
 Now let's define the pattern for validator functions. Each validator will be a function that returns another function that takes a context object and returns a result.
 
 ## Task
-Extend the `jaidetree.valhalla.core` namespace to implement:
+Extend the `dev.jaide.valhalla.core` namespace to implement:
 
 1. Function `make-validator` that creates a validator function from a predicate function and error message
 2. Function `validate` that applies a validator to a value
@@ -210,7 +210,7 @@ Add tests that verify:
 Let's implement our first real validator: the string validator. This will serve as a template for other basic type validators.
 
 ## Task
-Create a new namespace `jaidetree.valhalla.types` and implement:
+Create a new namespace `dev.jaide.valhalla.types` and implement:
 
 1. String validator that checks if a value is a string
 2. Support for custom error messages
@@ -224,7 +224,7 @@ The string validator should:
 - Use the core `ok` and `error` functions
 
 ## Test Cases
-Create a `jaidetree.valhalla.types-test` namespace with tests that verify:
+Create a `dev.jaide.valhalla.types-test` namespace with tests that verify:
 1. `(string)` creates a validator that accepts strings
 2. `(validate (string) "test")` returns a success result
 3. `(validate (string) 123)` returns a failure result
@@ -244,7 +244,7 @@ Create a `jaidetree.valhalla.types-test` namespace with tests that verify:
 Let's implement validators for numbers and integers, building on our string validator pattern.
 
 ## Task
-Extend the `jaidetree.valhalla.types` namespace to implement:
+Extend the `dev.jaide.valhalla.types` namespace to implement:
 
 1. Number validator that checks if a value is a number
 2. Integer validator that checks if a value is an integer
@@ -257,7 +257,7 @@ Use the pattern established by the string validator:
 - Support function-based error messages
 
 ## Test Cases
-Add tests to `jaidetree.valhalla.types-test` that verify:
+Add tests to `dev.jaide.valhalla.types-test` that verify:
 1. `(number)` creates a validator that accepts numbers
 2. `(validate (number) 123)` returns a success result
 3. `(validate (number) "test")` returns a failure result
@@ -280,7 +280,7 @@ Add tests to `jaidetree.valhalla.types-test` that verify:
 Let's continue implementing our basic type validators by adding support for booleans, keywords, and symbols.
 
 ## Task
-Extend the `jaidetree.valhalla.types` namespace to implement:
+Extend the `dev.jaide.valhalla.types` namespace to implement:
 
 1. Boolean validator that checks if a value is a boolean
 2. Keyword validator that checks if a value is a keyword
@@ -294,7 +294,7 @@ Follow the same pattern as previous validators:
 - Support function-based error messages
 
 ## Test Cases
-Add tests to `jaidetree.valhalla.types-test` that verify:
+Add tests to `dev.jaide.valhalla.types-test` that verify:
 1. `(boolean)` creates a validator that accepts boolean values
 2. `(validate (boolean) true)` returns a success result
 3. `(validate (boolean) false)` returns a success result
@@ -320,7 +320,7 @@ Add tests to `jaidetree.valhalla.types-test` that verify:
 Let's complete our set of basic type validators by implementing validators for UUIDs, nil values, and a special "any" validator that accepts any value.
 
 ## Task
-Extend the `jaidetree.valhalla.types` namespace to implement:
+Extend the `dev.jaide.valhalla.types` namespace to implement:
 
 1. UUID validator that checks if a value is a valid UUID
 2. Nil validator that checks if a value is nil
@@ -335,7 +335,7 @@ Follow the same pattern as previous validators:
 - The "any" validator should always return a success result
 
 ## Test Cases
-Add tests to `jaidetree.valhalla.types-test` that verify:
+Add tests to `dev.jaide.valhalla.types-test` that verify:
 1. `(uuid)` creates a validator that accepts UUID objects
 2. `(validate (uuid) (uuid/random-uuid))` returns a success result
 3. `(validate (uuid) "not-a-uuid")` returns a failure result
@@ -363,7 +363,7 @@ Add tests to `jaidetree.valhalla.types-test` that verify:
 Now let's start implementing collection validators, beginning with a basic vector validator.
 
 ## Task
-Create a new namespace `jaidetree.valhalla.collections` and implement:
+Create a new namespace `dev.jaide.valhalla.collections` and implement:
 
 1. Basic vector validator that checks if a value is a vector
 2. Support for custom error messages
@@ -376,7 +376,7 @@ The vector validator should:
 - Use the core `ok` and `error` functions
 
 ## Test Cases
-Create a `jaidetree.valhalla.collections-test` namespace with tests that verify:
+Create a `dev.jaide.valhalla.collections-test` namespace with tests that verify:
 1. `(vector)` creates a validator that accepts vectors
 2. `(validate (vector) [])` returns a success result
 3. `(validate (vector) [1 2 3])` returns a success result
@@ -397,7 +397,7 @@ Create a `jaidetree.valhalla.collections-test` namespace with tests that verify:
 Let's implement a more advanced vector validator that validates each item in a vector against another validator.
 
 ## Task
-Extend the `jaidetree.valhalla.collections` namespace to implement:
+Extend the `dev.jaide.valhalla.collections` namespace to implement:
 
 1. Vector-of validator that applies a validator to each item in a vector
 2. Proper path tracking for errors in nested items
@@ -413,7 +413,7 @@ The vector-of validator should:
 - Return a vector with all validated items on success
 
 ## Test Cases
-Add tests to `jaidetree.valhalla.collections-test` that verify:
+Add tests to `dev.jaide.valhalla.collections-test` that verify:
 1. `(vector-of (types/string))` creates a validator for vectors of strings
 2. `(validate (vector-of (types/string)) ["a" "b" "c"])` returns a success result
 3. `(validate (vector-of (types/string)) ["a" 1 "c"])` returns a failure result
@@ -437,7 +437,7 @@ Add tests to `jaidetree.valhalla.collections-test` that verify:
 Let's implement a vector-tuple validator that applies different validators to specific positions in a vector.
 
 ## Task
-Extend the `jaidetree.valhalla.collections` namespace to implement:
+Extend the `dev.jaide.valhalla.collections` namespace to implement:
 
 1. Vector-tuple validator that takes a sequence of validators for specific positions
 2. Check for vector length matching the number of validators
@@ -454,7 +454,7 @@ The vector-tuple validator should:
 - Return a vector with all validated items on success
 
 ## Test Cases
-Add tests to `jaidetree.valhalla.collections-test` that verify:
+Add tests to `dev.jaide.valhalla.collections-test` that verify:
 1. `(vector-tuple [(types/string) (types/number) (types/boolean)])` creates a tuple validator
 2. `(validate (vector-tuple [(types/string) (types/number) (types/boolean)]) ["test" 123 true])` succeeds
 3. `(validate (vector-tuple [(types/string) (types/number)]) ["test" "not-a-number"])` fails for position 1
@@ -477,7 +477,7 @@ Add tests to `jaidetree.valhalla.collections-test` that verify:
 Let's implement validators for lists and sets, following the same patterns as our vector validators.
 
 ## Task
-Extend the `jaidetree.valhalla.collections` namespace to implement:
+Extend the `dev.jaide.valhalla.collections` namespace to implement:
 
 1. Basic list validator that checks if a value is a list
 2. List-of validator that applies a validator to each item in a list
@@ -494,7 +494,7 @@ These validators should:
 - Return validated collections on success
 
 ## Test Cases
-Add tests to `jaidetree.valhalla.collections-test` that verify:
+Add tests to `dev.jaide.valhalla.collections-test` that verify:
 1. `(list)` creates a validator that accepts lists
 2. `(validate (list) '(1 2 3))` returns a success result
 3. `(validate (list) [1 2 3])` returns a failure result (vectors are not lists)
@@ -523,7 +523,7 @@ Add tests to `jaidetree.valhalla.collections-test` that verify:
 Let's implement validators for hash-maps, which are a key part of our validation library.
 
 ## Task
-Extend the `jaidetree.valhalla.collections` namespace to implement:
+Extend the `dev.jaide.valhalla.collections` namespace to implement:
 
 1. Basic hash-map validator that checks if a value is a hash-map
 2. Hash-map validator that validates specific keys against specific validators
@@ -540,7 +540,7 @@ The hash-map validator should:
 - Return a map with all validated values on success
 
 ## Test Cases
-Add tests to `jaidetree.valhalla.collections-test` that verify:
+Add tests to `dev.jaide.valhalla.collections-test` that verify:
 1. `(hash-map)` creates a validator that accepts hash-maps
 2. `(validate (hash-map) {})` returns a success result
 3. `(validate (hash-map) "not-a-map")` returns a failure result
@@ -567,7 +567,7 @@ Add tests to `jaidetree.valhalla.collections-test` that verify:
 Now let's implement two special type validators: nilable and optional. These are common validators that modify the behavior of other validators.
 
 ## Task
-Create a new namespace `jaidetree.valhalla.composites` and implement:
+Create a new namespace `dev.jaide.valhalla.composites` and implement:
 
 1. Nilable validator that allows a value to be nil or pass another validator
 2. Optional validator that allows a value to be missing or pass another validator
@@ -581,7 +581,7 @@ These validators should:
 - Wrap the other validator's result appropriately
 
 ## Test Cases
-Create a `jaidetree.valhalla.composites-test` namespace with tests that verify:
+Create a `dev.jaide.valhalla.composites-test` namespace with tests that verify:
 1. `(nilable (types/string))` creates a validator that accepts strings or nil
 2. `(validate (nilable (types/string)) "test")` returns a success result
 3. `(validate (nilable (types/string)) nil)` returns a success result
@@ -607,7 +607,7 @@ Create a `jaidetree.valhalla.composites-test` namespace with tests that verify:
 Let's implement enum and literal validators to validate against specific values or sets of values.
 
 ## Task
-Extend the `jaidetree.valhalla.composites` namespace to implement:
+Extend the `dev.jaide.valhalla.composites` namespace to implement:
 
 1. Enum validator that checks if a value is one of a set of specified values
 2. Literal validator that checks if a value equals a specific value
@@ -621,7 +621,7 @@ These validators should:
 - Support custom error messages
 
 ## Test Cases
-Add tests to `jaidetree.valhalla.composites-test` that verify:
+Add tests to `dev.jaide.valhalla.composites-test` that verify:
 1. `(enum [:red :green :blue])` creates a validator that accepts those specific keywords
 2. `(validate (enum [:red :green :blue]) :red)` returns a success result
 3. `(validate (enum [:red :green :blue]) :yellow)` returns a failure result
@@ -647,7 +647,7 @@ Add tests to `jaidetree.valhalla.composites-test` that verify:
 Let's implement two key composition functions: chain and union. These allow for combining validators in different ways.
 
 ## Task
-Extend the `jaidetree.valhalla.composites` namespace to implement:
+Extend the `dev.jaide.valhalla.composites` namespace to implement:
 
 1. Chain function that applies multiple validators sequentially (logical AND)
 2. Union function that tries multiple validators and succeeds if any succeed (logical OR)
@@ -662,7 +662,7 @@ These functions should:
 - Both should support custom error messages
 
 ## Test Cases
-Add tests to `jaidetree.valhalla.composites-test` that verify:
+Add tests to `dev.jaide.valhalla.composites-test` that verify:
 1. `(chain (types/string) #(if (seq %) (core/ok %) (core/error "Empty string")))` creates a validator that checks for non-empty strings
 2. `(validate (chain (types/string) #(if (seq %) (core/ok %) (core/error "Empty string"))) "test")` succeeds
 3. `(validate (chain (types/string) #(if (seq %) (core/ok %) (core/error "Empty string"))) "")` fails
@@ -688,7 +688,7 @@ Add tests to `jaidetree.valhalla.composites-test` that verify:
 Let's implement conditional and custom validators to add more flexibility to our library.
 
 ## Task
-Extend the `jaidetree.valhalla.composites` namespace to implement:
+Extend the `dev.jaide.valhalla.composites` namespace to implement:
 
 1. When function that conditionally applies a validator based on a predicate
 2. Custom function for creating arbitrary validators with custom logic
@@ -702,7 +702,7 @@ These functions should:
 - Both should support path tracking and error formatting
 
 ## Test Cases
-Add tests to `jaidetree.valhalla.composites-test` that verify:
+Add tests to `dev.jaide.valhalla.composites-test` that verify:
 1. `(when #(= (:type %) :number) (types/number) (types/string))` creates a conditional validator
 2. `(validate (when #(= (:type %) :number) (types/number) (types/string)) {:type :number, :value 123})` succeeds
 3. `(validate (when #(= (:type %) :number) (types/number) (types/string)) {:type :string, :value "test"})` succeeds
@@ -728,7 +728,7 @@ Add tests to `jaidetree.valhalla.composites-test` that verify:
 Let's implement a default function that provides default values for missing or nil fields.
 
 ## Task
-Extend the `jaidetree.valhalla.composites` namespace to implement:
+Extend the `dev.jaide.valhalla.composites` namespace to implement:
 
 1. Default function that wraps a validator and provides a default value if the input is nil or missing
 2. Integration with existing validators
@@ -742,7 +742,7 @@ The default function should:
 - Support both static default values and function-based defaults
 
 ## Test Cases
-Add tests to `jaidetree.valhalla.composites-test` that verify:
+Add tests to `dev.jaide.valhalla.composites-test` that verify:
 1. `(default (types/string) "default")` creates a validator with a default value
 2. `(validate (default (types/string) "default") "test")` returns a success result with "test"
 3. `(validate (default (types/string) "default") nil)` returns a success result with "default"
@@ -768,7 +768,7 @@ Add tests to `jaidetree.valhalla.composites-test` that verify:
 Let's implement lazy and ref validators to support recursive and self-referential data structures.
 
 ## Task
-Extend the `jaidetree.valhalla.composites` namespace to implement:
+Extend the `dev.jaide.valhalla.composites` namespace to implement:
 
 1. Lazy validator that defers schema evaluation until validation time
 2. Ref validator that references another validator
@@ -782,7 +782,7 @@ These validators should:
 - Both should follow the established validator pattern
 
 ## Test Cases
-Add tests to `jaidetree.valhalla.composites-test` that verify:
+Add tests to `dev.jaide.valhalla.composites-test` that verify:
 1. `(lazy #(types/string))` creates a validator that behaves like string validator
 2. `(validate (lazy #(types/string)) "test")` returns a success result
 3. `(validate (lazy #(types/string)) 123)` returns a failure result
@@ -808,7 +808,7 @@ Add tests to `jaidetree.valhalla.composites-test` that verify:
 Let's implement validators for JavaScript objects and arrays to facilitate interoperability with JavaScript.
 
 ## Task
-Create a new namespace `jaidetree.valhalla.interop` and implement:
+Create a new namespace `dev.jaide.valhalla.interop` and implement:
 
 1. JS object validator that validates JavaScript objects
 2. JS array validator that validates JavaScript arrays
@@ -825,7 +825,7 @@ These validators should:
 - All should support conversion to ClojureScript data structures
 
 ## Test Cases
-Create a `jaidetree.valhalla.interop-test` namespace with tests that verify:
+Create a `dev.jaide.valhalla.interop-test` namespace with tests that verify:
 1. `(js-object)` creates a validator that accepts JavaScript objects
 2. `(validate (js-object) #js {})` returns a success result
 3. `(validate (js-object) #js [])` returns a failure result
@@ -854,7 +854,7 @@ Create a `jaidetree.valhalla.interop-test` namespace with tests that verify:
 Let's implement improved error handling and internationalization support for our validation library.
 
 ## Task
-Create new namespaces `jaidetree.valhalla.errors` and `jaidetree.valhalla.i18n` and implement:
+Create new namespaces `dev.jaide.valhalla.errors` and `dev.jaide.valhalla.i18n` and implement:
 
 1. Enhanced error formatting utilities
 2. Support for error message templates
@@ -869,7 +869,7 @@ The error handling system should:
 - Update existing validators to use the i18n system
 
 ## Test Cases
-Create test namespaces `jaidetree.valhalla.errors-test` and `jaidetree.valhalla.i18n-test` with tests that verify:
+Create test namespaces `dev.jaide.valhalla.errors-test` and `dev.jaide.valhalla.i18n-test` with tests that verify:
 1. `(format-error :string/type ["field" "number"])` returns a formatted error message
 2. `(format-error :string/type ["field" "number"] :en)` returns an English error message
 3. `(format-error :string/type ["field" "number"] :es)` returns a Spanish error message
@@ -893,7 +893,7 @@ Create test namespaces `jaidetree.valhalla.errors-test` and `jaidetree.valhalla.
 Let's implement performance optimizations for our validation library to make it more efficient.
 
 ## Task
-Create a new namespace `jaidetree.valhalla.perf` and implement:
+Create a new namespace `dev.jaide.valhalla.perf` and implement:
 
 1. Lazy validation that stops at the first error
 2. Memoization for repeated validations
@@ -908,7 +908,7 @@ The performance optimizations should:
 - Benchmark utilities to compare performance
 
 ## Test Cases
-Create a `jaidetree.valhalla.perf-test` namespace with tests that verify:
+Create a `dev.jaide.valhalla.perf-test` namespace with tests that verify:
 1. `(with-lazy-validation (validate complex-schema invalid-data))` stops at the first error
 2. `(memoize-validator (types/string))` returns a memoized validator
 3. Test that memoized validators return the same result for the same input
@@ -932,7 +932,7 @@ Create a `jaidetree.valhalla.perf-test` namespace with tests that verify:
 Let's create comprehensive integration tests and examples to demonstrate the capabilities of our validation library.
 
 ## Task
-Create a new namespace `jaidetree.valhalla.integration` and implement:
+Create a new namespace `dev.jaide.valhalla.integration` and implement:
 
 1. Comprehensive integration tests for the entire library
 2. Realistic examples of validation scenarios
@@ -947,7 +947,7 @@ The integration tests should:
 - Provide usage examples for documentation
 
 ## Test Cases
-Create a `jaidetree.valhalla.integration-test` namespace with tests that verify:
+Create a `dev.jaide.valhalla.integration-test` namespace with tests that verify:
 1. Complex user schema with multiple validators
 2. Nested data structures with various validators
 3. Recursive data structures like trees or graphs

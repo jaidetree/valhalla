@@ -1,10 +1,10 @@
-(ns jaidetree.valhalla.js-test
+(ns dev.jaide.valhalla.js-test
   (:require
    [clojure.pprint :refer [pprint]]
    [cljs.test :refer [deftest testing is]]
-   [jaidetree.valhalla.core :as v]
-   [jaidetree.valhalla.js :as vjs]
-   [jaidetree.valhalla.context :as ctx]))
+   [dev.jaide.valhalla.core :as v]
+   [dev.jaide.valhalla.js :as vjs]
+   [dev.jaide.valhalla.context :as ctx]))
 
 (deftest object-test
   (testing "object"

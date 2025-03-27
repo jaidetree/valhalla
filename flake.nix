@@ -17,6 +17,7 @@
           pkgs.clj-kondo
           pkgs.clojure
           pkgs.clojure-lsp
+          pkgs.neil
           pkgs.nodejs_23
           pkgs.temurin-jre-bin-17
         ];

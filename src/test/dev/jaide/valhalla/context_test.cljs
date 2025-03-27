@@ -1,7 +1,7 @@
-(ns jaidetree.valhalla.context-test
+(ns dev.jaide.valhalla.context-test
   (:require
    [cljs.test :refer [deftest testing is]]
-   [jaidetree.valhalla.context :as ctx]))
+   [dev.jaide.valhalla.context :as ctx]))
 
 (deftest make-context-test
   (testing "returns context shape with no args"

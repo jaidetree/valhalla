@@ -1,8 +1,8 @@
-(ns jaidetree.valhalla.core-test
+(ns dev.jaide.valhalla.core-test
   (:require
    [cljs.test :refer [deftest testing is]]
-   [jaidetree.valhalla.core :as v]
-   [jaidetree.valhalla.context :as ctx]))
+   [dev.jaide.valhalla.core :as v]
+   [dev.jaide.valhalla.context :as ctx]))
 
 (deftest ok-test
   (testing "Ok values"

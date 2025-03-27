@@ -1,4 +1,4 @@
-(ns jaidetree.valhalla.utils)
+(ns dev.jaide.valhalla.utils)
 
 (defn stringify
   [value]
