@@ -134,20 +134,20 @@ Valhalla provides a set of validators for different data types:
   (v/boolean)  ; Default options
   (v/boolean {:message "Custom error message"})  ; With custom error message
   ```
-  
+
   Options:
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected boolean, got [value]"
-  
+
   Example:
   ```clojure
   (v/validate (v/boolean) true)  ; Valid
   (v/validate (v/boolean) "true")  ; Invalid - returns error
   (v/validate (v/boolean {:message "Must be true or false"}) 123)  ; Invalid with custom message
   ```
-  
+
   Related validators:
   - `string->boolean` - Converts string "true"/"false" to boolean values
-  
+
 - keyword
 - nil-value
 - number
