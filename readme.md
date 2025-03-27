@@ -205,7 +205,7 @@ Valhalla provides a set of validators for different data types:
   - `string->number` - Converts strings to numbers
   - `numeric` - Validates if a string can be parsed as a number
 
-- **numeric** - Validates if a value can be parsed as a number.
+- **numeric** - Validates if a string contains a numeric value.
   ```clojure
   (v/numeric)  ; Default options
   (v/numeric {:message "Custom error message"})  ; With custom error message
