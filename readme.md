@@ -134,44 +134,133 @@ Valhalla provides a set of validators for different data types:
   (v/boolean)  ; Default options
   (v/boolean {:message "Custom error message"})  ; With custom error message
   ```
-
+  
   Options:
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected boolean, got [value]"
-
+  
   Example:
   ```clojure
   (v/validate (v/boolean) true)  ; Valid
   (v/validate (v/boolean) "true")  ; Invalid - returns error
   (v/validate (v/boolean {:message "Must be true or false"}) 123)  ; Invalid with custom message
   ```
-
+  
   Related validators:
   - `string->boolean` - Converts string "true"/"false" to boolean values
-
+  
 - **keyword** - Validates if a value is a keyword.
   ```clojure
   (v/keyword)  ; Default options
   (v/keyword {:message "Custom error message"})  ; With custom error message
   ```
-
+  
   Options:
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected keyword, got [value]"
-
+  
   Example:
   ```clojure
   (v/validate (v/keyword) :user/admin)  ; Valid
   (v/validate (v/keyword) "not-a-keyword")  ; Invalid - returns error
   (v/validate (v/keyword {:message "Must be a keyword"}) 123)  ; Invalid with custom message
   ```
-
+  
   Related validators:
   - `string->keyword` - Converts strings to keywords, validating they match the pattern for valid keywords
 
-- nil-value
-- number
-- numeric
-- string
-- symbol
+- **nil-value** - Validates if a value is nil.
+  ```clojure
+  (v/nil-value)  ; Default options
+  (v/nil-value {:message "Custom error message"})  ; With custom error message
+  ```
+  
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected nil, got [value]"
+  
+  Example:
+  ```clojure
+  (v/validate (v/nil-value) nil)  ; Valid
+  (v/validate (v/nil-value) "something")  ; Invalid - returns error
+  ```
+  
+  Related validators:
+  - `nilable` - Makes another validator accept nil values
+
+- **number** - Validates if a value is a number.
+  ```clojure
+  (v/number)  ; Default options
+  (v/number {:message "Custom error message"})  ; With custom error message
+  ```
+  
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected number, got [value]"
+  
+  Example:
+  ```clojure
+  (v/validate (v/number) 42)  ; Valid
+  (v/validate (v/number) 3.14)  ; Valid
+  (v/validate (v/number) "42")  ; Invalid - returns error
+  ```
+  
+  Related validators:
+  - `string->number` - Converts strings to numbers
+  - `numeric` - Validates if a string can be parsed as a number
+
+- **numeric** - Validates if a value can be parsed as a number.
+  ```clojure
+  (v/numeric)  ; Default options
+  (v/numeric {:message "Custom error message"})  ; With custom error message
+  ```
+  
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected numeric string, got [value]"
+  
+  Example:
+  ```clojure
+  (v/validate (v/numeric) "42")  ; Valid - returns "42" (preserves string)
+  (v/validate (v/numeric) "3.14")  ; Valid - returns "3.14" (preserves string)
+  (v/validate (v/numeric) "not-a-number")  ; Invalid - returns error
+  ```
+  
+  Related validators:
+  - `string->number` - Converts strings to numbers
+  - `number` - Validates if a value is a number
+
+- **string** - Validates if a value is a string.
+  ```clojure
+  (v/string)  ; Default options
+  (v/string {:message "Custom error message"})  ; With custom error message
+  ```
+  
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected string, got [value]"
+  
+  Example:
+  ```clojure
+  (v/validate (v/string) "hello")  ; Valid
+  (v/validate (v/string) 42)  ; Invalid - returns error
+  ```
+  
+  Related validators:
+  - `regex` - Validates if a string matches a pattern
+
+- **symbol** - Validates if a value is a symbol.
+  ```clojure
+  (v/symbol)  ; Default options
+  (v/symbol {:message "Custom error message"})  ; With custom error message
+  ```
+  
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected symbol, got [value]"
+  
+  Example:
+  ```clojure
+  (v/validate (v/symbol) 'my-symbol)  ; Valid
+  (v/validate (v/symbol) 'user/function)  ; Valid
+  (v/validate (v/symbol) :keyword)  ; Invalid - returns error
+  ```
+  
+  Related validators:
+  - `string->symbol` - Converts strings to symbols
 
 ### Coercion
 
