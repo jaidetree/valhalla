@@ -153,19 +153,20 @@ Valhalla provides a set of validators for different data types:
   (v/keyword)  ; Default options
   (v/keyword {:message "Custom error message"})  ; With custom error message
   ```
-  
+
   Options:
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected keyword, got [value]"
-  
+
   Example:
   ```clojure
   (v/validate (v/keyword) :user/admin)  ; Valid
   (v/validate (v/keyword) "not-a-keyword")  ; Invalid - returns error
   (v/validate (v/keyword {:message "Must be a keyword"}) 123)  ; Invalid with custom message
   ```
-  
+
   Related validators:
   - `string->keyword` - Converts strings to keywords, validating they match the pattern for valid keywords
+
 - nil-value
 - number
 - numeric
