@@ -1,6 +1,6 @@
 {:deps {}
  :aliases {:neil {:project {:name 'dev.jaide/valhalla
-                            :version "2025.3.29"}}
+                            :version "2025.3.28"}}
            :build {:deps {io.github.clojure/tools.build {:git/tag "v0.10.8"
                                                          :git/sha "2fdfd66"}
                           slipset/deps-deploy {:mvn/version "0.2.2"}}

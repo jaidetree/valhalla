@@ -10,9 +10,15 @@ Valhalla is a ClojureScript validation library designed to make data validation 
 
 While [clojure.spec](https://clojure.org/guides/spec) is a powerful tool for data validation, Valhalla offers several advantages:
 
-- **Intuitive interface**: Valhalla provides a simpler, more direct API that's easier to learn and use
+- **Intuitive interface**: Valhalla provides a more intuitive collection of combinators, reflects the shape of your data
 - **Improved JS interop**: First-class support for JavaScript data structures and seamless conversion between JS and ClojureScript
 - **User-friendly error messages**: Detailed, customizable error messages that help users understand what went wrong
+
+### Tradeoffs
+
+- Runtime only, no static analysis
+- Less extensible, can be customized using with-redefs
+- Aimed for app development vs library contract verification
 
 ## Installation
 
@@ -264,7 +270,25 @@ Valhalla provides a set of validators for different data types:
 
 ### Coercion
 
-- string->boolean
+- **string->boolean** - Parses a string into a boolean
+  ```clojure
+  (v/string->boolean)  ; Default options
+  (v/string->boolean {:message "Custom error message"})  ; With custom error message
+  ```
+
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected boolean-string, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/string->boolean) "true")  ; Valid
+  (v/validate (v/string->boolean) "false")  ; Valid
+  (v/validate (v/string->boolean) :keyword)  ; Invalid - returns error
+  ```
+
+  Related validators:
+  - `boolean` - Validates boolean values
+
 - string->keyword
 - string->number
 - string->symbol
@@ -385,10 +409,38 @@ Custom validators can be used anywhere standard validators are used:
 
 Valhalla is inspired by [@badrap/valita](https://github.com/badrap/valita), a TypeScript validation library.
 
+## Testing
+
+Run tests automatically with the following:
+
+```bash
+npx shadow-cljs watch test
+```
+
+Build the tests, and run manually to target an individual test:
+
+```bash
+npx shadow-cljs watch test --config-merge '{:autorun false}'
+```
+
+Then in another terminal run:
+
+```bash
+npx nodemon -w build/js build/js/node-tests.js --test=dev.jaide.valhalla.core-test/hash-map-test
+```
+
+### Deploying
+
+Run the following to deploy to clojars. This will probably only work if you're me but it is a useful reminder
+
+```bash
+clj -T:build deploy
+```
+
 ## Support
 
 If you encounter any issues or would like to request a new validator, please [create an issue](https://github.com/jaidetree/valhalla/issues) on our GitHub repository. We appreciate your feedback and contributions!
 
 ## License
 
-[MIT License](LICENSE)
+[GPL-3.0 License](LICENSE)
