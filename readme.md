@@ -21,13 +21,13 @@ Add Valhalla to your project using your preferred dependency management tool:
 ### deps.edn
 
 ```clojure
-{:deps {dev.jaidetree/valhalla {:mvn/version "0.1.0"}}}
+{:deps {jaidetree/valhalla {:mvn/version "0.1.0"}}}
 ```
 
 ### Leiningen/Boot
 
 ```clojure
-[dev.jaidetree/valhalla "0.1.0"]
+[jaidetree/valhalla "0.1.0"]
 ```
 
 ## Example
@@ -55,8 +55,16 @@ Here's a quick example to get you started with Valhalla:
    :email "jane@example.com"
    :roles ["admin" "user"]})
 
-(v/parse user-schema valid-user)
-;; => {:name "Jane Doe", :age 30, :email "jane@example.com", :roles ["admin" "user"]}
+(v/validate user-schema valid-user)
+;; => {:status :v/pass
+;;     :input {:name "Jane Doe"
+;;             :age 30
+;;             :email "jane@example.com"
+;;             :roles ["admin" "user"]}
+;;     :output {:name "Jane Doe",
+;;              :age 30,
+;;              :email "jane@example.com",
+;;              :roles ["admin" "user"]}}
 
 ;; Invalid data will return errors
 (def invalid-user
@@ -106,28 +114,86 @@ Valhalla makes it easy to work with JavaScript data:
                   :preferences #js {:theme "dark"
                                    :notifications true}})
 
-(jsv/parse js-user-schema js-user)
-;; => {:name "Alice", :age 25, :preferences {:theme "dark", :notifications true}}
+(v/validate js-user-schema js-user)
+;; => {:status :v/pass
+;;     :input #js {:name "Alice"
+;;                 :age 25
+;;                 :preferences #js {:theme "dark"
+;;                                   :notifications true}}
+;;     :output {:name "Alice", :age 25, :preferences {:theme "dark", :notifications true}}}
 ```
 
 ## Validators
 
-Valhalla provides a rich set of validators for different data types:
+Valhalla provides a set of validators for different data types:
 
-- `string`: Validates strings with optional constraints like min/max length, pattern matching
-- `number`: Validates numbers with optional constraints like min/max values
-- `boolean`: Validates boolean values
-- `array`: Validates arrays/vectors with optional item validation
-- `object`: Validates objects/maps with specified key-value validations
-- `optional`: Makes a field optional
-- `nullable`: Allows a field to be null
-- `enum`: Validates against a set of allowed values
-- `any`: Accepts any value
-- `union`: Validates against multiple possible schemas
+### Primitive Values
+
+- boolean
+- keyword
+- nil-value
+- number
+- numeric
+- string
+- symbol
+
+### Coercion
+
+- string->boolean
+- string->keyword
+- string->number
+- string->symbol
+
+### Advanced
+
+- assert
+- enum
+- instance
+- literal
+- regex
+- uuid
+
+### Optionality
+
+- nilable
+
+### Collections
+
+- hash-map
+- list
+- record
+- set
+- vector
+
+### Tuples
+
+- vector-tuple
+- list-tuple
+
+### JS Date
+
+- date
+- string->date
+- number->date
+- date->string
+- date->number
+
+### Combinators
+
+- chain
+- union
+- default
+- lazy
+
+### JS Interop
+
+- object
+- array
+- iterable->array
 
 ## Writing Custom Validators
 
-Valhalla is designed to be extensible, allowing you to create custom validators for your specific needs. Here's how to create your own validator:
+Valhalla is flexible, it is simple to create custom validators.
 
 ### Basic Custom Validator
 
@@ -140,12 +206,17 @@ A validator in Valhalla is a function that takes a value and returns either the 
 (defn email-validator
   "Validates that a string is a valid email address"
   ([] (email-validator {}))
-  ([opts]
+  ([{:keys [message] :as opts}]
    (let [email-regex #"^[^@]+@[^@]+\.[^@]+$"
-         message (or (:message opts) "Invalid email address")]
-     (fn [value]
+         message (cond
+                   (fn? message) message
+                   (string? message) (constantly message)
+                   :else
+                   (fn [{:keys [value] :as context}]
+                     (str "Invalid email address, got " (pr-str value)]
+     (fn [{:keys [value] :as context}]
        (if (and (string? value) (re-matches email-regex value))
-         value
+         (v/ok value)
          (v/error message))))))
 
 ;; Usage:
@@ -153,24 +224,6 @@ A validator in Valhalla is a function that takes a value and returns either the 
   (v/object
     {:name (v/string)
      :email (email-validator {:message "Please enter a valid email"})}))
-```
-
-### Composing Validators
-
-You can compose validators to create more complex validation logic:
-
-```clojure
-(defn positive-integer
-  "Validates that a value is a positive integer"
-  ([] (positive-integer {}))
-  ([opts]
-   (let [message (or (:message opts) "Value must be a positive integer")]
-     (fn [value]
-       (cond
-         (not (number? value)) (v/error "Value must be a number")
-         (not (integer? value)) (v/error "Value must be an integer")
-         (not (pos? value)) (v/error "Value must be positive")
-         :else value)))))
 ```
 
 ### Validators with Transformations
@@ -182,39 +235,14 @@ Custom validators can also transform data during validation:
   "Validates a string and trims whitespace"
   ([] (trim-string {}))
   ([opts]
-   (let [base-validator (v/string opts)]
-     (fn [value]
-       (let [result (base-validator value)]
-         (if (v/error? result)
-           result
-           (clojure.string/trim result)))))))
+   (fn [{:keys [value]}]
+     (let [result (v/string value opts)]
+       (if (v/ok? result)
+         (let [[_status value] result]
+           (v/ok (clojure.string/trim value))
+         result)))))
 ```
 
-### Advanced Custom Validators
-
-For more complex validators, you can use Valhalla's internal utilities:
-
-```clojure
-(ns my-app.validators
-  (:require [jaidetree.valhalla.core :as v]
-            [jaidetree.valhalla.context :as ctx]))
-
-(defn date-validator
-  "Validates that a string is a valid ISO date and converts it to a js/Date"
-  ([] (date-validator {}))
-  ([opts]
-   (let [message (or (:message opts) "Invalid date format")]
-     (fn [value ctx]
-       (try
-         (if (string? value)
-           (let [date (js/Date. value)]
-             (if (js/isNaN (js/Number date))
-               (ctx/error ctx message)
-               date))
-           (ctx/error ctx message))
-         (catch :default _
-           (ctx/error ctx message)))))))
-```
 
 ### Integration with Existing Schemas
 
@@ -225,9 +253,7 @@ Custom validators can be used anywhere standard validators are used:
   (v/object
     {:name (v/string)
      :email (email-validator)
-     :age (positive-integer {:message "Age must be a positive integer"})
-     :bio (trim-string {:min 10 :message "Bio must be at least 10 characters"})
-     :birthdate (date-validator)}))
+     :bio (trim-string {:message "Bio must be at least 10 characters"})}))
 ```
 
 ## Credits
