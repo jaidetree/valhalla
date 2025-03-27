@@ -1,5 +1,5 @@
 {:deps {}
- :aliases {:neil {:project {:name 'dev.jaide/valhalla
+ :aliases {:neil {:project {:name dev.jaide/valhalla
                             :version "2025.3.28"}}
            :build {:deps {io.github.clojure/tools.build {:git/tag "v0.10.8"
                                                          :git/sha "2fdfd66"}

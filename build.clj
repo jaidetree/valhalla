@@ -4,11 +4,15 @@
 
 (def project (-> (edn/read-string (slurp "deps.edn"))
                  :aliases :neil :project))
-(def lib (assert (:name project) "Missing project name"))
+(def lib (:name project))
+
+(assert lib "Missing project name")
 
 ;; use neil project set version 1.2.0 to update the version in deps.edn
 
-(def version (assert (:version project) "Missing project version"))
+(def version (:version project))
+(assert version "Missing project version")
+
 (def class-dir "target/classes")
 (def basis (b/create-basis {:project "deps.edn"}))
 (def uber-file (format "target/%s-%s-standalone.jar" (name lib) version))
@@ -22,8 +26,8 @@
                 :lib lib
                 :version version
                 :basis basis
-                :src-dirs ["src"]})
-  (b/copy-dir {:src-dirs ["src" "resources"]
+                :src-dirs ["src/main"]})
+  (b/copy-dir {:src-dirs ["src/main"]
                :target-dir class-dir})
   (b/jar {:class-dir class-dir
           :jar-file jar-file}))

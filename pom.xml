@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <packaging>jar</packaging>
+  <groupId>valhalla</groupId>
+  <artifactId>valhalla</artifactId>
+  <version>2025.3.28</version>
+  <name>valhalla</name>
+  <dependencies>
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>clojure</artifactId>
+      <version>1.12.0</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+  </build>
+  <repositories>
+    <repository>
+      <id>clojars</id>
+      <url>https://repo.clojars.org/</url>
+    </repository>
+  </repositories>
+  <licenses>
+    <license>
+      <name>GPL-3.0-or-later</name>
+      <url>https://www.gnu.org/licenses/agpl-3.0.txt</url>
+    </license>
+  </licenses>
+</project>
