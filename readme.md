@@ -125,6 +125,111 @@ Valhalla provides a rich set of validators for different data types:
 - `any`: Accepts any value
 - `union`: Validates against multiple possible schemas
 
+## Writing Custom Validators
+
+Valhalla is designed to be extensible, allowing you to create custom validators for your specific needs. Here's how to create your own validator:
+
+### Basic Custom Validator
+
+A validator in Valhalla is a function that takes a value and returns either the validated value or an error result. Here's a simple example of a custom email validator:
+
+```clojure
+(ns my-app.validators
+  (:require [jaidetree.valhalla.core :as v]))
+
+(defn email-validator
+  "Validates that a string is a valid email address"
+  ([] (email-validator {}))
+  ([opts]
+   (let [email-regex #"^[^@]+@[^@]+\.[^@]+$"
+         message (or (:message opts) "Invalid email address")]
+     (fn [value]
+       (if (and (string? value) (re-matches email-regex value))
+         value
+         (v/error message))))))
+
+;; Usage:
+(def user-schema
+  (v/object
+    {:name (v/string)
+     :email (email-validator {:message "Please enter a valid email"})}))
+```
+
+### Composing Validators
+
+You can compose validators to create more complex validation logic:
+
+```clojure
+(defn positive-integer
+  "Validates that a value is a positive integer"
+  ([] (positive-integer {}))
+  ([opts]
+   (let [message (or (:message opts) "Value must be a positive integer")]
+     (fn [value]
+       (cond
+         (not (number? value)) (v/error "Value must be a number")
+         (not (integer? value)) (v/error "Value must be an integer")
+         (not (pos? value)) (v/error "Value must be positive")
+         :else value)))))
+```
+
+### Validators with Transformations
+
+Custom validators can also transform data during validation:
+
+```clojure
+(defn trim-string
+  "Validates a string and trims whitespace"
+  ([] (trim-string {}))
+  ([opts]
+   (let [base-validator (v/string opts)]
+     (fn [value]
+       (let [result (base-validator value)]
+         (if (v/error? result)
+           result
+           (clojure.string/trim result)))))))
+```
+
+### Advanced Custom Validators
+
+For more complex validators, you can use Valhalla's internal utilities:
+
+```clojure
+(ns my-app.validators
+  (:require [jaidetree.valhalla.core :as v]
+            [jaidetree.valhalla.context :as ctx]))
+
+(defn date-validator
+  "Validates that a string is a valid ISO date and converts it to a js/Date"
+  ([] (date-validator {}))
+  ([opts]
+   (let [message (or (:message opts) "Invalid date format")]
+     (fn [value ctx]
+       (try
+         (if (string? value)
+           (let [date (js/Date. value)]
+             (if (js/isNaN (js/Number date))
+               (ctx/error ctx message)
+               date))
+           (ctx/error ctx message))
+         (catch :default _
+           (ctx/error ctx message)))))))
+```
+
+### Integration with Existing Schemas
+
+Custom validators can be used anywhere standard validators are used:
+
+```clojure
+(def advanced-schema
+  (v/object
+    {:name (v/string)
+     :email (email-validator)
+     :age (positive-integer {:message "Age must be a positive integer"})
+     :bio (trim-string {:min 10 :message "Bio must be at least 10 characters"})
+     :birthdate (date-validator)}))
+```
+
 ## Credits
 
 Valhalla is inspired by [@badrap/valita](https://github.com/badrap/valita), a TypeScript validation library.
