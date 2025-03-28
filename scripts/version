@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+# Check if a date argument was provided
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 YYYY.MM.DD"
+    exit 1
+fi
+
+# Validate date format (simple check)
+if ! [[ $1 =~ ^[0-9]{4}\.[0-9]{1,2}\.[0-9]{1,2}$ ]]; then
+    echo "Error: Date must be in format YYYY.MM.DD"
+    exit 1
+fi
+
+# Check if readme.md exists
+if [ ! -f readme.md ]; then
+    echo "Error: readme.md file not found"
+    exit 1
+fi
+
+DATE_PATTERN="[0-9]{4}\.[0-9]{1,2}\.[0-9]{1,2}"
+REPLACE_DATE="s/$DATE_PATTERN/$1/g"
+
+# Use sed to replace all date patterns with the provided date
+sed -i -E $REPLACE_DATE deps.edn
+sed -i -E $REPLACE_DATE package.json
+sed -i -E $REPLACE_DATE pom.xml
+sed -i -E $REPLACE_DATE package-lock.json
+sed -i -E $REPLACE_DATE readme.md
+
+echo "Updated version to $1"
