@@ -48,7 +48,7 @@ Here's a quick example to get you started with Valhalla:
 
 ;; Define a validation schema
 (def user-schema
-  (v/object
+  (v/record
     {:name (v/string)
      :age (v/number)
      :email (v/string {:pattern #"^[^@]+@[^@]+\.[^@]+$"})
@@ -79,8 +79,9 @@ Here's a quick example to get you started with Valhalla:
    :email "not-an-email"
    :roles "admin"})
 
-(v/parse user-schema invalid-user)
-;; => {:success false, :errors [...detailed error information...]}
+(v/validate user-schema invalid-user)
+;; => {:status :v/fail,
+;;     :errors [...detailed error information...]}
 ```
 
 ### Custom error messages
@@ -89,12 +90,14 @@ You can customize error messages for better user experience:
 
 ```clojure
 (def user-schema
-  (v/object
+  (v/record
     {:name (v/string {:message "Name must be a string"})
      :age (v/number {:message "Age must be a number"})
      :email (v/string {:pattern #"^[^@]+@[^@]+\.[^@]+$"
                        :message "Please provide a valid email address"})
-     :roles (v/array (v/string) {:message "Roles must be an array of strings"})}))
+     :roles (v/array (v/string)
+                     {:message (fn [{:keys [value]}]
+                                (str "Roles must be an array of strings, got " (pr-str value)})}))
 ```
 
 ### Converting JS data to Clojure data
@@ -136,11 +139,6 @@ Valhalla provides a set of validators for different data types:
 ### Primitive Values
 
 - **boolean** - Validates if a value is a boolean.
-  ```clojure
-  (v/boolean)  ; Default options
-  (v/boolean {:message "Custom error message"})  ; With custom error message
-  ```
-
   Options:
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected boolean, got [value]"
 
@@ -150,16 +148,7 @@ Valhalla provides a set of validators for different data types:
   (v/validate (v/boolean) "true")  ; Invalid - returns error
   (v/validate (v/boolean {:message "Must be true or false"}) 123)  ; Invalid with custom message
   ```
-
-  Related validators:
-  - `string->boolean` - Converts string "true"/"false" to boolean values
-
 - **keyword** - Validates if a value is a keyword.
-  ```clojure
-  (v/keyword)  ; Default options
-  (v/keyword {:message "Custom error message"})  ; With custom error message
-  ```
-
   Options:
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected keyword, got [value]"
 
@@ -169,16 +158,7 @@ Valhalla provides a set of validators for different data types:
   (v/validate (v/keyword) "not-a-keyword")  ; Invalid - returns error
   (v/validate (v/keyword {:message "Must be a keyword"}) 123)  ; Invalid with custom message
   ```
-
-  Related validators:
-  - `string->keyword` - Converts strings to keywords, validating they match the pattern for valid keywords
-
 - **nil-value** - Validates if a value is nil.
-  ```clojure
-  (v/nil-value)  ; Default options
-  (v/nil-value {:message "Custom error message"})  ; With custom error message
-  ```
-
   Options:
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected nil, got [value]"
 
@@ -187,16 +167,7 @@ Valhalla provides a set of validators for different data types:
   (v/validate (v/nil-value) nil)  ; Valid
   (v/validate (v/nil-value) "something")  ; Invalid - returns error
   ```
-
-  Related validators:
-  - `nilable` - Makes another validator accept nil values
-
 - **number** - Validates if a value is a number.
-  ```clojure
-  (v/number)  ; Default options
-  (v/number {:message "Custom error message"})  ; With custom error message
-  ```
-
   Options:
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected number, got [value]"
 
@@ -207,16 +178,7 @@ Valhalla provides a set of validators for different data types:
   (v/validate (v/number) "42")  ; Invalid - returns error
   ```
 
-  Related validators:
-  - `string->number` - Converts strings to numbers
-  - `numeric` - Validates if a string can be parsed as a number
-
 - **numeric** - Validates if a string contains a numeric value.
-  ```clojure
-  (v/numeric)  ; Default options
-  (v/numeric {:message "Custom error message"})  ; With custom error message
-  ```
-
   Options:
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected numeric string, got [value]"
 
@@ -227,16 +189,7 @@ Valhalla provides a set of validators for different data types:
   (v/validate (v/numeric) "not-a-number")  ; Invalid - returns error
   ```
 
-  Related validators:
-  - `string->number` - Converts strings to numbers
-  - `number` - Validates if a value is a number
-
 - **string** - Validates if a value is a string.
-  ```clojure
-  (v/string)  ; Default options
-  (v/string {:message "Custom error message"})  ; With custom error message
-  ```
-
   Options:
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected string, got [value]"
 
@@ -246,15 +199,7 @@ Valhalla provides a set of validators for different data types:
   (v/validate (v/string) 42)  ; Invalid - returns error
   ```
 
-  Related validators:
-  - `regex` - Validates if a string matches a pattern
-
 - **symbol** - Validates if a value is a symbol.
-  ```clojure
-  (v/symbol)  ; Default options
-  (v/symbol {:message "Custom error message"})  ; With custom error message
-  ```
-
   Options:
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected symbol, got [value]"
 
@@ -265,19 +210,11 @@ Valhalla provides a set of validators for different data types:
   (v/validate (v/symbol) :keyword)  ; Invalid - returns error
   ```
 
-  Related validators:
-  - `string->symbol` - Converts strings to symbols
-
 ### Coercion
 
 - **string->boolean** - Parses a string into a boolean
-  ```clojure
-  (v/string->boolean)  ; Default options
-  (v/string->boolean {:message "Custom error message"})  ; With custom error message
-  ```
-
   Options:
-  - `:message` - Custom error message function or string. If not provided, defaults to "Expected boolean-string, got [value]"
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected string-boolean, got [value]"
 
   Example:
   ```clojure
@@ -286,59 +223,456 @@ Valhalla provides a set of validators for different data types:
   (v/validate (v/string->boolean) :keyword)  ; Invalid - returns error
   ```
 
-  Related validators:
-  - `boolean` - Validates boolean values
+- **string->keyword** - Parses a string into a keyword
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected string-keyword, got [value]"
 
-- string->keyword
-- string->number
-- string->symbol
+  Example:
+  ```clojure
+  (v/validate (v/string->keyword) "keyword")  ; Valid
+  (v/validate (v/string->keyword) "hello world")  ; Invalid - returns error
+  (v/validate (v/string->keyword) :keyword)  ; Invalid - returns error
+  ```
+
+- **string->number** - Parses a string into a number
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected string-number, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/string->number) "5")  ; Valid
+  (v/validate (v/string->number) "100.42")  ; Valid
+  (v/validate (v/string->number) :keyword)  ; Invalid - returns error
+  ```
+
+- **string->symbol** - Parses a string into a symbol
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected string-symbol, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/string->symbol) "a-sym")  ; Valid
+  (v/validate (v/string->symbol) "a-ns/a-sym")  ; Valid
+  (v/validate (v/string->symbol) 55)  ; Invalid - returns error
+  ```
 
 ### Advanced
 
-- assert
-- enum
-- instance
-- literal
-- regex
-- uuid
+- **assert** - Validates if a value satisfies a predicate function
+  Arguments:
+  - `predicate-fn` A function that takes a value and returns true or false
+
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Assert failed, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/assert string?) "a-sym")  ; Valid
+  (v/validate (v/assert string?) 55)  ; Invalid - returns error
+  ```
+
+- **enum** - Validates if a value is within a sequence of values
+  Arguments:
+  - `keyword-args` A sequence of possible keyword values
+
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected keyword of [kws], got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/enum [:a :b :c]) :a)  ; Valid
+  (v/validate (v/enum [:a :b :c]) :d)  ; Invalid - returns error
+  (v/validate (v/enum [:a :b :c]) "c")  ; Invalid - returns error
+  ```
+
+- **instance** - Validates if a value is an instance of an expected class
+  Arguments:
+  - `class-function` A class constructor function
+
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected instance of [name], got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/instance js/Date) (js/Date.))  ; Valid
+  (v/validate (v/instance js/Date) "str") ; Invalid - returns error
+  ```
+
+- **literal** - Validates if a value equals an expected literal value
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected literal [expected], got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/literal "str") "str")  ; Valid
+  (v/validate (v/literal "str") "other") ; Invalid - returns error
+  ```
+
+- **regex** - Validates if a value matches an expected regex pattern string
+  Arguments:
+  - `pattern-string` A regex string to test values against
+
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected string matching [pattern], got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/regex "[a-z0-9]+") "kebab-case")  ; Valid
+  (v/validate (v/regex "[a-z0-9]+") "PascalCase") ; Invalid - returns error
+  ```
+
+- **uuid** - Validates if a value is a valid UUID
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected UUID string, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/uuid) "d888f669-f177-49c4-a2f2-bedfc4bb6f61")  ; Valid
+  (v/validate (v/uuid) "other-string") ; Invalid - returns error
+  (v/validate (v/uuid) :other-type) ; Invalid - returns error
+  ```
 
 ### Optionality
 
-- nilable
+- **nilable** - Creates a validator that allows nil values or validates non-nil values
+  Options:
+  - `validator` - A validator function to pass through if non-nil
+
+  Example:
+  ```clojure
+  (v/validate (v/nilable (v/string)) nil)  ; Valid
+  (v/validate (v/nilable (v/string)) "other-string") ; Valid
+  (v/validate (v/nilable (v/string)) :other-type) ; Invalid - returns error
+  ```
 
 ### Collections
 
-- hash-map
-- list
-- record
-- set
-- vector
+- **hash-map** - Validates if a value is a hash-map with a key and value type
+  Arguments:
+  - `key-validator` - A validator function for each key, defaults to `keyword`
+  - `value-validator` - A validator function for each value
+
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected hash-map, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/hash-map (v/string)) {:key "value"})  ; Valid
+  (v/validate (v/hash-map (v/string) (v/string)) {"key" "value"})  ; Valid
+  (v/validate (v/hash-map (v/string) (v/string)) {55 "value"})  ; Invalid - returns error
+  (v/validate (v/hash-map (v/string) (v/string)) :other)  ; Invalid - returns error
+  ```
+
+- **list** - Validates if a value is a list and validates each element
+  Arguments:
+  - `value-validator` - A validator function for each value
+
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected list, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/list (v/string)) '("str" "str1" "str2"))  ; Valid
+  (v/validate (v/list (v/string)) '(:kw "str1" "str2"))  ; Invalid - returns error
+  (v/validate (v/list (v/string)) ["str"])  ; Invalid - returns error
+  (v/validate (v/list (v/string)) :other)  ; Invalid - returns error
+  ```
+
+- **record** - Validates if a value is a hash-map and validates specific keys
+  Arguments:
+  - `hash-map` - A hash-map mapping keys to validator functions
+
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected hash-map record, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate
+    (v/hash-map {:a (v/string)
+                 :b (v/number)
+                 :c (v/keyword)}) {:a "str" :b 5 :c :kw})  ; Valid
+  (v/validate
+    (v/hash-map {:a (v/string)
+                 :b (v/number)
+                 :c (v/keyword)}) {:a "str" :b 5 :c :kw :d 'sym})  ; Invalid - returns error
+  (v/validate
+    (v/hash-map {:a (v/string)
+                 :b (v/number)
+                 :c (v/keyword)}) {:a "str" :b "str2" :c :kw})  ; Invalid - returns error
+  (v/validate
+    (v/hash-map {:a (v/string)
+                 :b (v/number)
+                 :c (v/keyword)}) [:a :b :c])  ; Invalid - returns error
+  ```
+
+- **set** - Validates if a value is a set and validates each element
+  Arguments:
+  - `value-validator` - A validator for every value in a set
+
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected set, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/set (v/keyword)) #{:a :b :c})  ; Valid
+  (v/validate (v/set (v/keyword)) #{:a "str" :c})  ; Invalid - returns error
+  (v/validate (v/set (v/keyword)) :oops)  ; Invalid - returns error
+  ```
+
+- **vector** - Applies a validator to every item in a vector
+  Arguments:
+  - `value-validator` - A validator for every value in a vector
+
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected vector, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/vector (v/keyword)) [:a :b :c])  ; Valid
+  (v/validate (v/vector (v/keyword)) [:a "str" :c])  ; Invalid - returns error
+  (v/validate (v/vector (v/keyword)) :oh-no)  ; Invalid - returns error
+  ```
 
 ### Tuples
 
-- vector-tuple
-- list-tuple
+- **vector-tuple** - Validates if a value is a vector with specific validators for each position
+  Arguments:
+  - `validators` - A vector of validator functions
+
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected vector-tuple of length [size], got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/vector-tuple [(v/keyword)
+                               (v/string)
+                               (v/number)]) [:a "str" 5])  ; Valid
+  (v/validate (v/vector-tuple [(v/keyword)
+                               (v/string)
+                               (v/number)]) [5 :a "str"])  ; Invalid - returns error
+  (v/validate (v/vector-tuple [(v/keyword)
+                               (v/string)
+                               (v/number)]) [:a "str" 5 :b])  ; Invalid - returns error
+  (v/validate (v/vector-tuple [(v/keyword)
+                               (v/string)
+                               (v/number)]) :other)  ; Invalid - returns error
+  ```
+
+- **list-tuple** - Validates if a value is a list with specific validators for each position
+  Arguments:
+  - `validators` - A list of validator functions
+
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected list-tuple of length [size], got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/list-tuple (list (v/keyword)
+                                  (v/string)
+                                  (v/number))) [:a "str" 5])  ; Valid
+  (v/validate (v/list-tuple (list (v/keyword)
+                                  (v/string)
+                                  (v/number))) [5 :a "str"])  ; Invalid - returns error
+  (v/validate (v/list-tuple (list (v/keyword)
+                                  (v/string)
+                                  (v/number))) [:a "str" 5 :b])  ; Invalid - returns error
+  (v/validate (v/list-tuple (list (v/keyword)
+                                  (v/string)
+                                  (v/number))) :other)  ; Invalid - returns error
+  ```
 
 ### JS Date
 
-- date
-- string->date
-- number->date
-- date->string
-- date->number
+- **date** - Validates if a value is a valid JavaScript Date object
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected date, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/date) (js/Date.))  ; Valid
+  (v/validate (v/date) 1743138078984)  ; Invalid - returns error
+  (v/validate (v/date) :other)  ; Invalid - returns error
+
+- **string->date** - Converts a string to a JavaScript Date object. Uses `js/Date.parse` under the hood.
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected string-date, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/string->date) "2025-03-28T05:04:24.923Z")  ; Valid
+  (v/validate (v/string->date) "other")  ; Invalid - returns error
+  (v/validate (v/string->date) :other)  ; Invalid - returns error
+  ```
+
+- **number->date** - Converts a number to a JavaScript Date object. Uses `(new js/Date)` under the hood.
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected valid timestamp, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/number->date) 1743138078984)  ; Valid
+  (v/validate (v/number->date) -5)  ; Invalid - returns error
+  (v/validate (v/number->date) :other)  ; Invalid - returns error
+  ```
+
+- **date->string** - Converts a JavaScript Date object to an ISO string
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected date, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/date->string) (js/Date))  ; Valid
+  (v/validate (v/date->string) :other)  ; Invalid - returns error
+  ```
+
+- **date->number** - Converts a JavaScript Date object to a number
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected date, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate (v/date->number) (js/Date))  ; Valid
+  (v/validate (v/date->number) :other)  ; Invalid - returns error
+  ```
 
 ### Combinators
 
-- chain
-- union
-- default
-- lazy
+- **chain** - Creates a validator that applies multiple validators in sequence
+  Arguments:
+  - `& validators` - Variadic list of validator functions
+
+  Example:
+  ```clojure
+  (v/validate (v/chain (v/string) (v/string->number)) "5")  ; Valid
+  (v/validate (v/chain (v/string) (v/string->number)) "str")  ; Invalid - returns error
+  ```
+
+- **union** - Creates a validator that tries multiple validators and succeeds if any one succeeds
+  Arguments:
+  - `& validators` - Variadic list of validator functions
+
+  Example:
+  ```clojure
+  (v/validate (v/union (v/string) (v/number)) "5")  ; Valid
+  (v/validate (v/union (v/string) (v/number)) 5)  ; Valid
+  (v/validate (v/union (v/string) (v/number)) :other)  ; Invalid - returns error
+  ```
+
+- **default** - Creates a validator that provides a default value for nil inputs
+  Arguments:
+  - `validator` - Variadic list of validator functions
+  - `default-value-or-fn` - Default value or function, is only used if value is nil
+
+  Example:
+  ```clojure
+  (v/validate (v/default (v/string) "default") "str")  ; Valid
+  (v/validate (v/default (v/string) "default") nil)  ; Valid
+  (v/validate (v/default (v/string) (fn [] "default")) nil)  ; Valid
+  (v/validate (v/default (v/string) "default") :other)  ; Invalid - returns error
+  ```
+
+- **lazy** - Creates a validator that lazily evaluates a validator function
+  Arguments:
+  - `make-validator-fn` - Function that returns a validator function
+
+  Example:
+  ```clojure
+  (declare task)
+  (def task (v/lazy
+             (fn []
+               (v/record {:title (v/string)
+                          :tasks (v/vector task)}))))
+
+  (v/validate task {:title "str"
+                    :tasks [{:title "str2" :tasks []}])  ; Valid
+  (v/validate task {:title :other
+                    :tasks {:title "str2" :tasks []}])  ; Invalid - returns error
+  ```
+
 
 ### JS Interop
 
-- object
-- array
-- iterable->array
+Import the library like as follows:
+
+```clojure
+(ns my-namespace.core
+  (:require [dev.jaide.valhalla.js :as vjs]))
+```
+
+- **array** - Validates if a value is a js-array and parses into a vector
+  Arguments:
+  - `validator` - A validator to apply to each array item
+
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected js-array, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate
+    (vjs/array (v/string)) #js ["str" "str1" "str2"])  ; Valid
+  (v/validate
+    (vjs/array (v/string)) #js ["str" "str2" :kw])  ; Invalid - returns error
+  (v/validate
+    (vjs/array (v/string)) #js {:a 1 :b 2 :c 3})  ; Invalid - returns error
+  ```
+
+- **object** - Validates if a value is a JavaScript object with same value type of unknown size
+  Arguments:
+  - `validator` - A validator function applied to each value
+
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected js-object, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate
+   (vjs/object (v/string)) #js {:a "str" :b "str2" :c "str3"})  ; Valid
+  (v/validate
+   (vjs/record (v/string)) #js {:a "str" :b "str2" :c :kw})  ; Invalid - returns error
+  (v/validate
+   (vjs/record (v/string)) #js [:a :b :c])  ; Invalid - returns error
+  ```
+
+- **record** - Validates if a value is a js-object and validates specific keys
+  Arguments:
+  - `validator-hash-map` - A hash-map mapping keys to validator functions
+
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected js-object, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate
+    (vjs/record {:a (v/string)
+                 :b (v/number)
+                 :c (v/keyword)}) #js {:a "str" :b 5 :c :kw})  ; Valid
+  (v/validate
+    (vjs/record {:a (v/string)
+                 :b (v/number)
+                 :c (v/keyword)}) #js {:a "str" :b 5 :c :kw :d 'sym})  ; Invalid - returns error
+  (v/validate
+    (vjs/record {:a (v/string)
+                 :b (v/number)
+                 :c (v/keyword)}) #js {:a "str" :b "str2" :c :kw})  ; Invalid - returns error
+  (v/validate
+    (vjs/record {:a (v/string)
+                 :b (v/number)
+                 :c (v/keyword)}) #js [:a :b :c])  ; Invalid - returns error
+  ```
+
+- **iterable->vector** - Validates if a value is a js-array and parses into a vector
+  Options:
+  - `:message` - Custom error message function or string. If not provided, defaults to "Expected js-object, got [value]"
+
+  Example:
+  ```clojure
+  (v/validate
+    (vjs/iterable-vector) (js/Set. #js ["str" 5 :kw]))  ; Valid
+  (v/validate
+    (vjs/iterable-vector) (js/Set. #js ["str" "str2" "str3"]))  ; Valid
+  (v/validate
+    (vjs/iterable-vector) #js {:a 1 :b 2 :c 3})  ; Invalid - returns error
+  ```
 
 ## Writing Custom Validators
 
@@ -370,7 +704,7 @@ A validator in Valhalla is a function that takes a value and returns either the 
 
 ;; Usage:
 (def user-schema
-  (v/object
+  (v/record
     {:name (v/string)
      :email (email-validator {:message "Please enter a valid email"})}))
 ```
@@ -399,7 +733,7 @@ Custom validators can be used anywhere standard validators are used:
 
 ```clojure
 (def advanced-schema
-  (v/object
+  (v/record
     {:name (v/string)
      :email (email-validator)
      :bio (trim-string {:message "Bio must be at least 10 characters"})}))
