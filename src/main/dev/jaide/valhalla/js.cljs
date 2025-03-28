@@ -17,7 +17,7 @@
                               (name path)
                               path))))))
 
-(defn- object-validators
+(defn- record-validators
   [& {:keys [context validator-kvs path-index]}]
   (let [context (assoc context :output {})]
     (->> validator-kvs
@@ -36,7 +36,7 @@
                                    (ctx/raise-errors ctx errors)))))
           context))))
 
-(defn object
+(defn record
   "Validates if a value is a JavaScript object and validates specific properties.
 
    Arguments:
@@ -48,6 +48,58 @@
    Returns a validator function that accepts a context and returns a result
    with a map of validated property-value pairs if successful."
   [validators-map & [opts]]
+  (assert (map? validators-map) "Validators must be a hash-map of keys to validators")
+  (fn [{:keys [value] :as context}]
+    (let [message (msg-fn (:message opts)
+                          (fn [{:keys [value]}]
+                            (str "Expected js-object, got " (u/stringify value))))]
+      (if (not (object? value))
+        (error (message context))
+        (let [idx (count (:path context))
+              ctx (record-validators
+                   {:context context
+                    :validator-kvs validators-map
+                    :path-index idx})]
+          (if (empty? (:errors ctx))
+            (ok (:output ctx))
+            (errors (:errors ctx))))))))
+
+(defn- object-validators
+  [& {:keys [context validator path-index]}]
+  (let [context (assoc context :output {})]
+    (-> (:value context)
+        (js/Object.entries)
+        (.reduce
+         (fn [ctx [key value]]
+           (let [ctx (-> ctx
+                         (replace-path path-index key)
+                         (ctx/update-value value))
+
+                 result (validator ctx)]
+             (result-case result
+                          :ok (fn [value]
+                                (-> ctx
+                                    (assoc :value value)
+                                    (assoc-in [:output (keyword key)] value)))
+                          :err (fn [error]
+                                 (ctx/raise-error ctx error))
+                          :errs (fn [errors]
+                                  (ctx/raise-errors ctx errors)))))
+         context))))
+
+(defn object
+  "Validates if a value is a JavaScript object with same value type of unknown size.
+
+   Arguments:
+   - validator - A validator function
+
+   Options:
+   - :message - Custom error message function or string
+
+   Returns a validator function that accepts a context and returns a result
+   with a map of validated property-value pairs if successful."
+  [validator & [opts]]
+  (assert (fn? validator) "Validator must be a function")
   (fn [{:keys [value] :as context}]
     (let [message (msg-fn (:message opts)
                           (fn [{:keys [value]}]
@@ -57,7 +109,7 @@
         (let [idx (count (:path context))
               ctx (object-validators
                    {:context context
-                    :validator-kvs validators-map
+                    :validator validator
                     :path-index idx})]
           (if (empty? (:errors ctx))
             (ok (:output ctx))
@@ -99,7 +151,7 @@
   (fn [{:keys [value] :as context}]
     (let [message (msg-fn (:message opts)
                           (fn [{:keys [value]}]
-                            (str "Expected js-object, got " (u/stringify value))))]
+                            (str "Expected js-array, got " (u/stringify value))))]
       (if (not (array? value))
         (error (message context))
         (let [idx (count (:path context))
@@ -144,10 +196,11 @@
    with an array of validated elements if successful. The input array must have
    the same length as the validators sequence."
   [validators-seq & [opts]]
+  (assert (sequential? validators-seq) "Validators must be a vector or list")
   (fn [{:keys [value] :as context}]
     (let [message (msg-fn (:message opts)
                           (fn [{:keys [value]}]
-                            (str "Expected js-array-tuple, got " (u/stringify value))))]
+                            (str "Expected js-array-tuple of length " (count validators-seq) ", got " (u/stringify value))))]
       (if (and (array? value)
                (= (.-length value) (count validators-seq)))
         (let [idx (count (:path context))
@@ -160,7 +213,7 @@
             (errors (:errors ctx))))
         (error (message context))))))
 
-(defn iterable->array
+(defn iterable->vector
   "Converts a JavaScript iterable object to an array.
 
    Options:
@@ -168,7 +221,7 @@
 
    Returns a validator function that accepts a context and returns a result
    with a JavaScript array created from the iterable if successful."
-  ([] (iterable->array {}))
+  ([] (iterable->vector {}))
   ([opts]
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
@@ -176,7 +229,10 @@
                              (str "Expected iterable, got " (u/stringify value))))]
        (try
          (if (js-iterable? value)
-           (ok (js/Array.from value))
+           (ok (-> (js/Array.from value)
+                   (.reduce (fn [vec v]
+                              (conj vec v))
+                            [])))
            (throw (js/Error. :fail)))
          (catch :default _err
            (error (message context))))))))

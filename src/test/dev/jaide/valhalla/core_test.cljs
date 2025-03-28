@@ -397,7 +397,7 @@
                               :c (v/string->number)})
                    nil)]
           (is (= (:status res) :v/fail))
-          (is (= (:errors res) [{:path [] :message "Expected record, got nil"}]))
+          (is (= (:errors res) [{:path [] :message "Expected hash-map record, got nil"}]))
           (is (= (:output res) nil))))))
 
   (testing "collects all errors"

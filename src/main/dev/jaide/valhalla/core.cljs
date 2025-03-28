@@ -629,7 +629,7 @@
   (fn [{:keys [value] :as context}]
     (let [message (msg-fn (:message opts)
                           (fn [{:keys [value]}]
-                            (str "Expected record, got " (u/stringify value))))]
+                            (str "Expected hash-map record, got " (u/stringify value))))]
       (if (not (map? value))
         (error (message context))
         (let [idx (count (:path context))
