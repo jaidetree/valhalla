@@ -1,0 +1,66 @@
+name: Release and Deploy
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version in YYYY.M.D format'
+        required: false
+        default: ''
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        server-id: clojars
+        server-username: CLOJARS_USERNAME
+        server-password: CLOJARS_PASSWORD
+    
+    - name: Install Clojure Tools
+      uses: DeLaGuardo/setup-clojure@12.1
+      with:
+        cli: latest
+    
+    - name: Set up Git user
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+    
+    - name: Generate version from date
+      id: version
+      run: |
+        if [ -z "${{ github.event.inputs.version }}" ]; then
+          DATE=$(date +"%Y.%-m.%-d")
+        else
+          DATE="${{ github.event.inputs.version }}"
+        fi
+        echo "date=$DATE" >> $GITHUB_OUTPUT
+    
+    - name: Update version
+      run: |
+        chmod +x ./scripts/version
+        ./scripts/version ${{ steps.version.outputs.date }}
+    
+    - name: Commit version changes
+      run: |
+        git add deps.edn package.json pom.xml package-lock.json readme.md
+        git commit -m "chore: Update version to ${{ steps.version.outputs.date }}"
+        git push origin HEAD:main
+    
+    - name: Deploy to Clojars
+      run: clj -T:build deploy
+      env:
+        CLOJARS_USERNAME: ${{ secrets.CLOJARS_USERNAME }}
+        CLOJARS_PASSWORD: ${{ secrets.CLOJARS_PASSWORD }}
