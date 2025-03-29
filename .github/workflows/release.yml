@@ -38,25 +38,31 @@ jobs:
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
     
-    - name: Generate version from date
+    - name: Get version from release tag or input
       id: version
       run: |
-        if [ -z "${{ github.event.inputs.version }}" ]; then
-          DATE=$(date +"%Y.%-m.%-d")
+        if [ "${{ github.event_name }}" = "release" ]; then
+          # Extract version from the release tag (remove 'v' prefix if present)
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"
+        elif [ -n "${{ github.event.inputs.version }}" ]; then
+          # Use manually provided version
+          VERSION="${{ github.event.inputs.version }}"
         else
-          DATE="${{ github.event.inputs.version }}"
+          # Fallback to date-based version
+          VERSION=$(date +"%Y.%-m.%-d")
         fi
-        echo "date=$DATE" >> $GITHUB_OUTPUT
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
     
     - name: Update version
       run: |
         chmod +x ./scripts/version
-        ./scripts/version ${{ steps.version.outputs.date }}
+        ./scripts/version ${{ steps.version.outputs.version }}
     
     - name: Commit version changes
       run: |
         git add deps.edn package.json pom.xml package-lock.json readme.md
-        git commit -m "chore: Update version to ${{ steps.version.outputs.date }}"
+        git commit -m "chore: Update version to ${{ steps.version.outputs.version }}"
         git push origin HEAD:main
     
     - name: Deploy to Clojars
