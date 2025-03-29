@@ -1,4 +1,4 @@
-<img alt="Valhalla Logo" src="doc/valhalla-logo.svg" />
+<img alt="Valhalla Logo" src="doc/valhalla-logo.svg" style="width: 500px; height:auto;" />
 
 # Valhalla
 
