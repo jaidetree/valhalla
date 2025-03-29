@@ -1,3 +1,5 @@
+<img alt="Valhalla Logo" src="doc/valhalla-logo.svg" />
+
 # Valhalla
 
 A ClojureScript validation library for parsing and validating data with an emphasis on intuitive interfaces and JavaScript interoperability.
