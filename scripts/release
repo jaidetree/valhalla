@@ -2,15 +2,18 @@
 
 set -euo pipefail -x
 
+# Checkout main branch
+git checkout main
+
 # Check if a date argument was provided
 if [ $# -ne 1 ]; then
-    echo "Usage: $0 YYYY.MM.DD"
+    echo "Usage: $0 YYYY.M.D"
     exit 1
 fi
 
 # Validate date format (simple check)
 if ! [[ $1 =~ ^[0-9]{4}\.[0-9]{1,2}\.[0-9]{1,2}$ ]]; then
-    echo "Error: Date must be in format YYYY.MM.DD"
+    echo "Error: Date must be in format YYYY.M.D"
     exit 1
 fi
 
@@ -22,20 +25,20 @@ if ! git diff-index --quiet HEAD --; then
     exit 1
 fi
 
-./version "$1"
-git add deps.edn package.json package-lock.json pom.xml readme.md
-git commit -m "chore: Update version to 2025.3.29"
+sh ./scripts/version "$1"
+
+# If there are modified files, commit them
+if ! git diff-index --quiet HEAD --; then
+  git add deps.edn package.json package-lock.json pom.xml readme.md
+  git commit -m "chore: Update version to $1"
+fi
+
 git tag -a "$1"
 git push origin main "$1"
 
 # Ask user if they want to open the GitHub release page
 read -p "Open GitHub release page? (Y/n): " open_page
 if [[ "$open_page" == "" || "$open_page" == "y" || "$open_page" == "Y" ]]; then
-    # Extract the repository from the git remote URL
-    repo_url=$(git remote get-url origin)
-    # Remove the protocol and user info if present
-    repo_path=$(echo "$repo_url" | sed -E 's|^(https://|git@)github.com[:/]||' | sed 's|\.git$||')
-    
     # Open the GitHub release creation page with the tag
-    open "https://github.com/$repo_path/releases/new?tag=$1"
+    open "https://github.com/jaidetree/valhalla/releases/new?tag=$1"
 fi

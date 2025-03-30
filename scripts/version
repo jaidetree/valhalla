@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 # Check if a date argument was provided
 if [ $# -ne 1 ]; then
     echo "Usage: $0 YYYY.MM.DD"
