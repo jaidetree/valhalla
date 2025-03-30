@@ -27,3 +27,15 @@ git add deps.edn package.json package-lock.json pom.xml readme.md
 git commit -m "chore: Update version to 2025.3.29"
 git tag -a "$1"
 git push origin main "$1"
+
+# Ask user if they want to open the GitHub release page
+read -p "Open GitHub release page? (Y/n): " open_page
+if [[ "$open_page" == "" || "$open_page" == "y" || "$open_page" == "Y" ]]; then
+    # Extract the repository from the git remote URL
+    repo_url=$(git remote get-url origin)
+    # Remove the protocol and user info if present
+    repo_path=$(echo "$repo_url" | sed -E 's|^(https://|git@)github.com[:/]||' | sed 's|\.git$||')
+    
+    # Open the GitHub release creation page with the tag
+    open "https://github.com/$repo_path/releases/new?tag=$1"
+fi
