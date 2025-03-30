@@ -23,19 +23,44 @@
            [:v/error "No good"]))))
 
 (deftest validate-test
-  (testing "validate passes on valid input"
-    (let [res (v/validate (v/string) "test")]
-      (is (= (:status res) :v/pass))
-      (is (= (:input res) "test"))
-      (is (= (:output res) "test"))))
+  (testing "validate"
+    (testing "passes on valid input"
+      (let [res (v/validate (v/string) "test")]
+        (is (= (:status res) :v/pass))
+        (is (= (:input res) "test"))
+        (is (= (:output res) "test"))))
 
-  (testing "validate fails on invalid input"
-    (let [res (v/validate (v/string) 5)]
-      (is (= (:status res) :v/fail))
-      (is (= (:input res) 5))
-      (is (= (:output res) nil))
-      (is (= (:errors res) [{:path []
-                             :message "Expected string, got 5"}])))))
+    (testing "fails on invalid input"
+      (let [res (v/validate (v/string) 5)]
+        (is (= (:status res) :v/fail))
+        (is (= (:input res) 5))
+        (is (= (:output res) nil))
+        (is (= (:errors res) [{:path []
+                               :message "Expected string, got 5"}])))))
+
+  (testing "throws with invalid validator arg"
+    (is (thrown? :default (v/validate nil 5)))))
+
+(deftest assert-valid-test
+  (testing "assert-valid"
+    (testing "returns result when valid"
+      (let [res (v/assert-valid (v/number) 5)]
+        (is (= (:status res) :v/pass))
+        (is (= (:errors res) nil))
+        (is (= (:output res) 5))))
+    (testing "throws when invalid"
+      (is (thrown? :default (v/assert-valid
+                             (v/vector-tuple
+                              [(v/number) (v/keyword) (v/string)])
+                             ["str" 5 :kw]))))))
+
+(deftest errors->string-test
+  (testing "Formats errors to string"
+    (is (= (v/errors->string
+            [{:path [:a] :message "Error 1"}
+             {:path [:b] :message "Error 2"}
+             {:path [:c] :message "Error 3"}])
+           "a: Error 1\nb: Error 2\nc: Error 3"))))
 
 (deftest string-test
   (testing "String passes on string inputs"
@@ -390,6 +415,8 @@
           (is (= res [:v/ok {:a {:b "str"}}])))))
 
     (testing "fails"
+      (testing "throws error if not given a map"
+        (is (thrown? :default (v/validate (v/record :other) {:a 1 :b 2}))))
       (testing "non-hash-map value"
         (let [res (v/validate
                    (v/record {:a (v/string)
@@ -558,7 +585,11 @@
       (testing "validator values"
         (is (= ((v/nilable (v/number))
                 (ctx/create :value 5))
-               [:v/ok 5]))))
+               [:v/ok 5])))
+      (testing "complex values"
+        (is (= ((v/record {:data (v/nilable (v/assert map?))})
+                (ctx/create :value {:data {:a 1}}))
+               [:v/ok {:data {:a 1}}]))))
     (testing "fails"
       (testing "invalid validator input"
         (is (= ((v/nilable (v/number))

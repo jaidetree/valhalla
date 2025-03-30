@@ -84,6 +84,7 @@
    Creates a validation context with the input, applies the validator,
    and returns a validation result map (pass or fail)."
   [validator-fn input & [opts]]
+  (cc/assert (fn? validator-fn) "Validator must be a function")
   (let [context (ctx/create :input input)
         result (validator-fn context)]
     (result-case result
@@ -99,6 +100,37 @@
                          (-> context
                              (ctx/raise-errors errors)
                              (fail))))))
+(defn errors->string
+  "Formats a list of error hash-maps into a line-separated string
+
+  Arguments:
+  - errors - Sequence of error hash-maps with :path vectors and :message str
+
+  Returns a string of all error messages"
+  [errors]
+  (->> (for [error errors]
+         (str (s/join "." (->> (:path error)
+                               (map #(s/replace (pr-str %) #"^:" ""))))
+              ": " (:message error)))
+       (s/join "\n")))
+
+(defn assert-valid
+  "Validates input and throws an error if invalid.
+
+  Options:
+  - :message - Custom error message function or string
+
+  Returns the validation result if valid
+  "
+  [validator input & {:keys [message]}]
+  (let [result (validate validator input)
+        message (cond (string? message) (constantly message)
+                      (fn? message)     message
+                      :else             (fn [{:keys [errors]}]
+                                          (errors->string errors)))]
+    (if (valid? result)
+      result
+      (throw (js/Error. (str "ValidationError:\n" (message result)))))))
 
 (defn string
   "Validates if a value is a string.
@@ -626,6 +658,7 @@
    Returns a validator function that accepts a context and returns a result
    with a map of validated key-value pairs if successful."
   [validators-map & [opts]]
+  (cc/assert (map? validators-map) "Validators must be a hash-map with keywords and validator functions")
   (fn [{:keys [value] :as context}]
     (let [message (msg-fn (:message opts)
                           (fn [{:keys [value]}]

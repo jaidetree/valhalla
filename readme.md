@@ -134,6 +134,77 @@ Valhalla makes it easy to work with JavaScript data:
 ;;     :output {:name "Alice", :age 25, :preferences {:theme "dark", :notifications true}}}
 ```
 
+## API
+
+- **assert-valid** - Applies a validator to data, throws an error if invalid
+  Arguments:
+  - `validator` - A validator function
+  - `input` - Input data to validate
+  - `opts` - Optional keyword settings
+
+  Options:
+  - `:message` - A string or function to format validator output. Only called if validator fails
+
+  Returns a hash-map like the following if input is valid:
+
+  ```clojure
+  {:status :v/pass
+   :input  original-input
+   :output parsed-output-shape}
+  ```
+
+  By default, it will stringify error messages with `v/errors->string`.
+
+- **errors->string** - Format a collection of validation errors into a line-separated string
+  Arguments:
+  - `errors` - A collection of error hash-maps with `:path` vector and `:message` string
+
+  Example:
+  ```clojure
+  (v/errors->string [{:path [:a :z] :message "Expected string, got :kw"}
+                     {:path [:b :y] :message "Expected number, got \"str\""}
+                     {:path [:c :x] :message "Expected keyword, got 5"}]
+  ;; #=>
+  ;;  "a.z: Expected string, got :kw
+  ;;  b.y: Expected number, got \"str\"
+  ;;  c.x: Expected keyword, got 5"
+  ```
+
+- **validate** - Applies a validator to data returns the result hash-map
+  Arguments:
+  - `validator` - A validator function
+  - `input` - Input data to validate
+
+  Options:
+  - No options supported yet. Let me know if you can think of any useful ones!
+
+  Returns a hash-map like the following if input is valid:
+
+  ```clojure
+  {:status :v/pass
+   :input  original-input
+   :output parsed-output-shape}
+  ```
+
+  Returns a hash-map like the following if input is invalid:
+
+  ```clojure
+  {:status :v/fail
+   :input  original-input
+   :errors [{:path [:a] :message "Expected string, got 5"}
+            {:path [:b] :message "Expected keyword, got \"str\""}
+            {:path [:c] :message "Expected number, got :kw"}]
+   :output nil}
+  ```
+  There is also a utility function called `v/pass?` for testing the results, it can be used like the following:
+
+  ```clojure
+  (let [result (v/validate (v/number) 5)]
+    (if (v/pass? result)
+      "Success"
+      "Failure"))
+  ```
+
 ## Validators
 
 Valhalla provides a set of validators for different data types:
