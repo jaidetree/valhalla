@@ -1,4 +1,4 @@
-name: Release and Deploy
+name: Deploy to Clojars
 
 on:
   release:
@@ -13,12 +13,12 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
-    
+
     - name: Set up Java
       uses: actions/setup-java@v3
       with:
@@ -27,44 +27,12 @@ jobs:
         server-id: clojars
         server-username: CLOJARS_USERNAME
         server-password: CLOJARS_PASSWORD
-    
+
     - name: Install Clojure Tools
       uses: DeLaGuardo/setup-clojure@12.1
       with:
         cli: latest
-    
-    - name: Set up Git user
-      run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-    
-    - name: Get version from release tag or input
-      id: version
-      run: |
-        if [ "${{ github.event_name }}" = "release" ]; then
-          # Extract version from the release tag (remove 'v' prefix if present)
-          VERSION="${{ github.event.release.tag_name }}"
-          VERSION="${VERSION#v}"
-        elif [ -n "${{ github.event.inputs.version }}" ]; then
-          # Use manually provided version
-          VERSION="${{ github.event.inputs.version }}"
-        else
-          # Fallback to date-based version
-          VERSION=$(date +"%Y.%-m.%-d")
-        fi
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-    
-    - name: Update version
-      run: |
-        chmod +x ./scripts/version
-        ./scripts/version ${{ steps.version.outputs.version }}
-    
-    - name: Commit version changes
-      run: |
-        git add deps.edn package.json pom.xml package-lock.json readme.md
-        git commit -m "chore: Update version to ${{ steps.version.outputs.version }}"
-        git push origin HEAD:main
-    
+
     - name: Deploy to Clojars
       run: clj -T:build deploy
       env:
