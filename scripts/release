@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail -x
-
-# Checkout main branch
-git checkout main
+set -euo pipefail
 
 # Check if a date argument was provided
 if [ $# -ne 1 ]; then
@@ -17,32 +14,40 @@ if ! [[ $1 =~ ^[0-9]{4}\.[0-9]{1,2}\.[0-9]{1,2}$ ]]; then
     exit 1
 fi
 
-# Check for modified or staged files only (ignoring untracked files)
-MODIFIED_FILES=$(git diff-index --quiet HEAD --; echo $?)
+# Checkout main branch
+echo -e "\nCheckout main branch\n"
+git checkout main
 
-if [ $MODIFIED_FILES -ne 0 ]; then
+# Check for modified or staged files only (ignoring untracked files)
+if ! git diff-index --quiet HEAD --; then
     echo "Error: Working directory is not clean"
     echo "There are uncommitted changes in tracked files:"
     git status -s | grep -v "^??"
     exit 1
 fi
 
+echo -e "\nUpdating version to $1"
 sh ./scripts/version "$1"
 
-MODIFIED_FILES=$(git diff-index --quiet HEAD --; echo $?)
-
 # If there are modified files, commit them
-if [ $MODIFIED_FILES -ne 0 ]; then
+if ! git diff --quiet HEAD --; then
   git add deps.edn package.json package-lock.json pom.xml readme.md
   git commit -m "chore: Update version to $1"
 fi
 
+echo -e "\nCreating git tag"
 git tag -a "$1" -m "Prepare release $1"
-git push origin main "$1"
+
+echo -e "\nPushing git tag and main branch"
+git push origin main "$1" --force-with-lease
+
+NEW_RELEASE_URL="https://github.com/jaidetree/valhalla/releases/new?tag=$1&title=$1"
+
+echo -e "\n$NEW_RELEASE_URL\n"
 
 # Ask user if they want to open the GitHub release page
-read -p "Open GitHub release page? (Y/n): " open_page
-if [[ "$open_page" == "" || "$open_page" == "y" || "$open_page" == "Y" ]]; then
+read -p "Open release page in browser? (Y/n) [n]: " open_page
+if [[ "$open_page" == "y" || "$open_page" == "Y" ]]; then
     # Open the GitHub release creation page with the tag
-    open "https://github.com/jaidetree/valhalla/releases/new?tag=$1"
+    open "$NEW_RELEASE_URL"
 fi
