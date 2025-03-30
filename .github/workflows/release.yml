@@ -34,7 +34,7 @@ jobs:
         cli: latest
 
     - name: Deploy to Clojars
-      run: clj -T:build deploy
+      run: clojure -T:build deploy
       env:
         CLOJARS_USERNAME: ${{ secrets.CLOJARS_USERNAME }}
         CLOJARS_PASSWORD: ${{ secrets.CLOJARS_PASSWORD }}
