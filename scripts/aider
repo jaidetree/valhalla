@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+exec aider --model sonnet --anthropic-api-key "$ANTHROPIC_API_KEY"
