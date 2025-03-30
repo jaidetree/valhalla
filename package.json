@@ -1,6 +1,6 @@
 {
   "name": "valhalla",
-  "version": "2025.3.28",
+  "version": "2025.3.29",
   "description": "Validation library for ClojureScript",
   "scripts": {
     "test": "shadow-cljs compile test"

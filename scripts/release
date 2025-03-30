@@ -18,7 +18,9 @@ if ! [[ $1 =~ ^[0-9]{4}\.[0-9]{1,2}\.[0-9]{1,2}$ ]]; then
 fi
 
 # Check for modified or staged files only (ignoring untracked files)
-if ! git diff-index --quiet HEAD --; then
+MODIFIED_FILES=$(git diff-index --quiet HEAD --; echo $?)
+
+if [ $MODIFIED_FILES -ne 0 ]; then
     echo "Error: Working directory is not clean"
     echo "There are uncommitted changes in tracked files:"
     git status -s | grep -v "^??"
@@ -27,13 +29,15 @@ fi
 
 sh ./scripts/version "$1"
 
+MODIFIED_FILES=$(git diff-index --quiet HEAD --; echo $?)
+
 # If there are modified files, commit them
-if ! git diff-index --quiet HEAD --; then
+if [ $MODIFIED_FILES -ne 0 ]; then
   git add deps.edn package.json package-lock.json pom.xml readme.md
   git commit -m "chore: Update version to $1"
 fi
 
-git tag -a "$1"
+git tag -a "$1" -m "Prepare release $1"
 git push origin main "$1"
 
 # Ask user if they want to open the GitHub release page
