@@ -4,7 +4,7 @@
   <packaging>jar</packaging>
   <groupId>valhalla</groupId>
   <artifactId>valhalla</artifactId>
-  <version>2025.3.29</version>
+  <version>2025.3.28</version>
   <name>valhalla</name>
   <dependencies>
     <dependency>
