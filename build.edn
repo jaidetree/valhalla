@@ -1,0 +1,7 @@
+{:lib dev.jaide/valhalla
+ :version "2025.4.16-SNAPSHOT"
+ :description "A ClojureScript validation library for parsing and validating data with an emphasis on intuitive interfaces and JavaScript interoperability"
+ :source-dirs ["src/main"]
+ :licenses [{:name "GPL-3.0"
+             :url "https://www.gnu.org/licenses/agpl-3.0.txt"}]}
+
