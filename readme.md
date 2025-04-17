@@ -1,7 +1,7 @@
 # Valhalla
 
 <p align="center">
-  <img src="./doc/valhalla-logo.svg" alt="finity Logo" />
+  <img src="./doc/valhalla-logo.svg" alt="Valhalla Logo" />
 </p>
 
 
