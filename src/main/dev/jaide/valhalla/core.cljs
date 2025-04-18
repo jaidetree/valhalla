@@ -962,29 +962,35 @@
         (ok (:output ctx))
         (errors (:errors ctx))))))
 
+(defn ctx->ok
+  [{:keys [output] :as ctx}]
+  [:v/ok output])
+
 (defn- union-validators
   [{:keys [validators context]}]
-  (->> validators
-       (reduce
-        (fn [ctx validator]
-          (let [result (validator ctx)]
-            (result-case
-             result
-             :ok (fn [value]
-                   (-> context
-                       (ctx/accrete value)
-                       (ctx/clear-errors)
-                       (pass)
-                       (reduced)))
-             :err (fn [error]
-                    (-> context
-                        (ctx/clear-errors)
-                        (ctx/raise-error error)))
-             :errs (fn [errors]
+  (let [errors-idx (count (:errors context))]
+    (->> validators
+         (reduce
+          (fn [ctx validator]
+            (let [ctx (-> ctx
+                          (update :errors #(vec (take errors-idx %))))
+                  result (validator ctx)]
+              (result-case
+               result
+               :ok (fn [value]
                      (-> context
-                         (ctx/clear-errors)
-                         (ctx/raise-errors errors))))))
-        context)))
+                         (ctx/accrete value)
+                         (pass)
+                         (reduced)))
+               :err (fn [error]
+                      (-> context
+                          (ctx/clear-errors)
+                          (ctx/raise-error error)))
+               :errs (fn [errors]
+                       (-> context
+                           (ctx/clear-errors)
+                           (ctx/raise-errors errors))))))
+          context))))
 
 (defn union
   "Creates a validator that tries multiple validators and succeeds if any one succeeds.

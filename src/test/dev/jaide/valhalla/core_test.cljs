@@ -680,7 +680,15 @@
                            (v/keyword)))
                  (v/number))
                 (ctx/create :value 5))
-               [:v/ok 5]))))
+               [:v/ok 5])))
+      (testing "complex validators"
+        (is (v/valid? (v/assert-valid
+                        (v/hash-map
+                         (v/keyword)
+                         (v/union (v/literal {})
+                                  (v/hash-map (v/keyword) (v/assert fn?))))
+                        {:test-1 {}
+                         :test-2 {:id identity}})))))
     (testing "fails"
       (testing "last failing validator"
         (is (= ((v/union
