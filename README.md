@@ -4,7 +4,6 @@
   <img src="./doc/valhalla-logo.svg" alt="Valhalla Logo" />
 </p>
 
-
 A ClojureScript validation library for parsing and validating data with an emphasis on intuitive interfaces and JavaScript interoperability.
 
 ## Introduction
@@ -32,13 +31,13 @@ Add Valhalla to your project using your preferred dependency management tool:
 ### deps.edn
 
 ```clojure
-{:deps {dev.jaide/valhalla {:mvn/version "2025.4.18-SNAPSHOT"}}}
+{:deps {dev.jaide/valhalla {:mvn/version "2025.4.18"}}}
 ```
 
 ### Leiningen/Boot
 
 ```clojure
-[dev.jaide/valhalla "2025.4.18-SNAPSHOT"]
+[dev.jaide/valhalla "2025.4.18"]
 ```
 
 ## Example
@@ -141,11 +140,13 @@ Valhalla makes it easy to work with JavaScript data:
 
 - **assert-valid** - Applies a validator to data, throws an error if invalid
   Arguments:
+
   - `validator` - A validator function
   - `input` - Input data to validate
   - `opts` - Optional keyword settings
 
   Options:
+
   - `:message` - A string or function to format validator output. Only called if validator fails
 
   Returns a hash-map like the following if input is valid:
@@ -160,9 +161,11 @@ Valhalla makes it easy to work with JavaScript data:
 
 - **errors->string** - Format a collection of validation errors into a line-separated string
   Arguments:
+
   - `errors` - A collection of error hash-maps with `:path` vector and `:message` string
 
   Example:
+
   ```clojure
   (v/errors->string [{:path [:a :z] :message "Expected string, got :kw"}
                      {:path [:b :y] :message "Expected number, got \"str\""}
@@ -175,10 +178,12 @@ Valhalla makes it easy to work with JavaScript data:
 
 - **validate** - Applies a validator to data returns the result hash-map
   Arguments:
+
   - `validator` - A validator function
   - `input` - Input data to validate
 
   Options:
+
   - No options supported yet. Let me know if you can think of any useful ones!
 
   Returns a hash-map like the following if input is valid:
@@ -199,6 +204,7 @@ Valhalla makes it easy to work with JavaScript data:
             {:path [:c] :message "Expected number, got :kw"}]
    :output nil}
   ```
+
   There is also a utility function called `v/pass?` for testing the results, it can be used like the following:
 
   ```clojure
@@ -216,38 +222,49 @@ Valhalla provides a set of validators for different data types:
 
 - **boolean** - Validates if a value is a boolean.
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected boolean, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/boolean) true)  ; Valid
   (v/validate (v/boolean) "true")  ; Invalid - returns error
   (v/validate (v/boolean {:message "Must be true or false"}) 123)  ; Invalid with custom message
   ```
+
 - **keyword** - Validates if a value is a keyword.
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected keyword, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/keyword) :user/admin)  ; Valid
   (v/validate (v/keyword) "not-a-keyword")  ; Invalid - returns error
   (v/validate (v/keyword {:message "Must be a keyword"}) 123)  ; Invalid with custom message
   ```
+
 - **nil-value** - Validates if a value is nil.
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected nil, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/nil-value) nil)  ; Valid
   (v/validate (v/nil-value) "something")  ; Invalid - returns error
   ```
+
 - **number** - Validates if a value is a number.
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected number, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/number) 42)  ; Valid
   (v/validate (v/number) 3.14)  ; Valid
@@ -256,9 +273,11 @@ Valhalla provides a set of validators for different data types:
 
 - **numeric** - Validates if a string contains a numeric value.
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected numeric string, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/numeric) "42")  ; Valid - returns "42" (preserves string)
   (v/validate (v/numeric) "3.14")  ; Valid - returns "3.14" (preserves string)
@@ -267,9 +286,11 @@ Valhalla provides a set of validators for different data types:
 
 - **string** - Validates if a value is a string.
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected string, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/string) "hello")  ; Valid
   (v/validate (v/string) 42)  ; Invalid - returns error
@@ -277,9 +298,11 @@ Valhalla provides a set of validators for different data types:
 
 - **symbol** - Validates if a value is a symbol.
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected symbol, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/symbol) 'my-symbol)  ; Valid
   (v/validate (v/symbol) 'user/function)  ; Valid
@@ -290,9 +313,11 @@ Valhalla provides a set of validators for different data types:
 
 - **string->boolean** - Parses a string into a boolean
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected string-boolean, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/string->boolean) "true")  ; Valid
   (v/validate (v/string->boolean) "false")  ; Valid
@@ -301,9 +326,11 @@ Valhalla provides a set of validators for different data types:
 
 - **string->keyword** - Parses a string into a keyword
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected string-keyword, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/string->keyword) "keyword")  ; Valid
   (v/validate (v/string->keyword) "hello world")  ; Invalid - returns error
@@ -312,9 +339,11 @@ Valhalla provides a set of validators for different data types:
 
 - **string->number** - Parses a string into a number
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected string-number, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/string->number) "5")  ; Valid
   (v/validate (v/string->number) "100.42")  ; Valid
@@ -323,9 +352,11 @@ Valhalla provides a set of validators for different data types:
 
 - **string->symbol** - Parses a string into a symbol
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected string-symbol, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/string->symbol) "a-sym")  ; Valid
   (v/validate (v/string->symbol) "a-ns/a-sym")  ; Valid
@@ -336,12 +367,15 @@ Valhalla provides a set of validators for different data types:
 
 - **assert** - Validates if a value satisfies a predicate function
   Arguments:
+
   - `predicate-fn` A function that takes a value and returns true or false
 
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Assert failed, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/assert string?) "a-sym")  ; Valid
   (v/validate (v/assert string?) 55)  ; Invalid - returns error
@@ -349,12 +383,15 @@ Valhalla provides a set of validators for different data types:
 
 - **enum** - Validates if a value is within a sequence of values
   Arguments:
+
   - `keyword-args` A sequence of possible keyword values
 
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected keyword of [kws], got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/enum [:a :b :c]) :a)  ; Valid
   (v/validate (v/enum [:a :b :c]) :d)  ; Invalid - returns error
@@ -363,12 +400,15 @@ Valhalla provides a set of validators for different data types:
 
 - **instance** - Validates if a value is an instance of an expected class
   Arguments:
+
   - `class-function` A class constructor function
 
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected instance of [name], got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/instance js/Date) (js/Date.))  ; Valid
   (v/validate (v/instance js/Date) "str") ; Invalid - returns error
@@ -376,9 +416,11 @@ Valhalla provides a set of validators for different data types:
 
 - **literal** - Validates if a value equals an expected literal value
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected literal [expected], got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/literal "str") "str")  ; Valid
   (v/validate (v/literal "str") "other") ; Invalid - returns error
@@ -386,12 +428,15 @@ Valhalla provides a set of validators for different data types:
 
 - **regex** - Validates if a value matches an expected regex pattern string
   Arguments:
+
   - `pattern-string` A regex string to test values against
 
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected string matching [pattern], got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/regex "[a-z0-9]+") "kebab-case")  ; Valid
   (v/validate (v/regex "[a-z0-9]+") "PascalCase") ; Invalid - returns error
@@ -399,9 +444,11 @@ Valhalla provides a set of validators for different data types:
 
 - **uuid** - Validates if a value is a valid UUID
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected UUID string, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/uuid) "d888f669-f177-49c4-a2f2-bedfc4bb6f61")  ; Valid
   (v/validate (v/uuid) "other-string") ; Invalid - returns error
@@ -412,9 +459,11 @@ Valhalla provides a set of validators for different data types:
 
 - **nilable** - Creates a validator that allows nil values or validates non-nil values
   Options:
+
   - `validator` - A validator function to pass through if non-nil
 
   Example:
+
   ```clojure
   (v/validate (v/nilable (v/string)) nil)  ; Valid
   (v/validate (v/nilable (v/string)) "other-string") ; Valid
@@ -425,13 +474,16 @@ Valhalla provides a set of validators for different data types:
 
 - **hash-map** - Validates if a value is a hash-map with a key and value type
   Arguments:
+
   - `key-validator` - A validator function for each key, defaults to `keyword`
   - `value-validator` - A validator function for each value
 
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected hash-map, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/hash-map (v/string)) {:key "value"})  ; Valid
   (v/validate (v/hash-map (v/string) (v/string)) {"key" "value"})  ; Valid
@@ -441,12 +493,15 @@ Valhalla provides a set of validators for different data types:
 
 - **list** - Validates if a value is a list and validates each element
   Arguments:
+
   - `value-validator` - A validator function for each value
 
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected list, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/list (v/string)) '("str" "str1" "str2"))  ; Valid
   (v/validate (v/list (v/string)) '(:kw "str1" "str2"))  ; Invalid - returns error
@@ -456,12 +511,15 @@ Valhalla provides a set of validators for different data types:
 
 - **record** - Validates if a value is a hash-map and validates specific keys
   Arguments:
+
   - `hash-map` - A hash-map mapping keys to validator functions
 
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected hash-map record, got [value]"
 
   Example:
+
   ```clojure
   (v/validate
     (v/hash-map {:a (v/string)
@@ -483,12 +541,15 @@ Valhalla provides a set of validators for different data types:
 
 - **set** - Validates if a value is a set and validates each element
   Arguments:
+
   - `value-validator` - A validator for every value in a set
 
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected set, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/set (v/keyword)) #{:a :b :c})  ; Valid
   (v/validate (v/set (v/keyword)) #{:a "str" :c})  ; Invalid - returns error
@@ -497,12 +558,15 @@ Valhalla provides a set of validators for different data types:
 
 - **vector** - Applies a validator to every item in a vector
   Arguments:
+
   - `value-validator` - A validator for every value in a vector
 
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected vector, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/vector (v/keyword)) [:a :b :c])  ; Valid
   (v/validate (v/vector (v/keyword)) [:a "str" :c])  ; Invalid - returns error
@@ -513,12 +577,15 @@ Valhalla provides a set of validators for different data types:
 
 - **vector-tuple** - Validates if a value is a vector with specific validators for each position
   Arguments:
+
   - `validators` - A vector of validator functions
 
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected vector-tuple of length [size], got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/vector-tuple [(v/keyword)
                                (v/string)
@@ -536,12 +603,15 @@ Valhalla provides a set of validators for different data types:
 
 - **list-tuple** - Validates if a value is a list with specific validators for each position
   Arguments:
+
   - `validators` - A list of validator functions
 
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected list-tuple of length [size], got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/list-tuple (list (v/keyword)
                                   (v/string)
@@ -561,19 +631,25 @@ Valhalla provides a set of validators for different data types:
 
 - **date** - Validates if a value is a valid JavaScript Date object
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected date, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/date) (js/Date.))  ; Valid
   (v/validate (v/date) 1743138078984)  ; Invalid - returns error
   (v/validate (v/date) :other)  ; Invalid - returns error
 
+  ```
+
 - **string->date** - Converts a string to a JavaScript Date object. Uses `js/Date.parse` under the hood.
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected string-date, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/string->date) "2025-03-28T05:04:24.923Z")  ; Valid
   (v/validate (v/string->date) "other")  ; Invalid - returns error
@@ -582,9 +658,11 @@ Valhalla provides a set of validators for different data types:
 
 - **number->date** - Converts a number to a JavaScript Date object. Uses `(new js/Date)` under the hood.
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected valid timestamp, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/number->date) 1743138078984)  ; Valid
   (v/validate (v/number->date) -5)  ; Invalid - returns error
@@ -593,9 +671,11 @@ Valhalla provides a set of validators for different data types:
 
 - **date->string** - Converts a JavaScript Date object to an ISO string
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected date, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/date->string) (js/Date))  ; Valid
   (v/validate (v/date->string) :other)  ; Invalid - returns error
@@ -603,9 +683,11 @@ Valhalla provides a set of validators for different data types:
 
 - **date->number** - Converts a JavaScript Date object to a number
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected date, got [value]"
 
   Example:
+
   ```clojure
   (v/validate (v/date->number) (js/Date))  ; Valid
   (v/validate (v/date->number) :other)  ; Invalid - returns error
@@ -615,9 +697,11 @@ Valhalla provides a set of validators for different data types:
 
 - **chain** - Creates a validator that applies multiple validators in sequence
   Arguments:
+
   - `& validators` - Variadic list of validator functions
 
   Example:
+
   ```clojure
   (v/validate (v/chain (v/string) (v/string->number)) "5")  ; Valid
   (v/validate (v/chain (v/string) (v/string->number)) "str")  ; Invalid - returns error
@@ -625,9 +709,11 @@ Valhalla provides a set of validators for different data types:
 
 - **union** - Creates a validator that tries multiple validators and succeeds if any one succeeds
   Arguments:
+
   - `& validators` - Variadic list of validator functions
 
   Example:
+
   ```clojure
   (v/validate (v/union (v/string) (v/number)) "5")  ; Valid
   (v/validate (v/union (v/string) (v/number)) 5)  ; Valid
@@ -636,10 +722,12 @@ Valhalla provides a set of validators for different data types:
 
 - **default** - Creates a validator that provides a default value for nil inputs
   Arguments:
+
   - `validator` - Variadic list of validator functions
   - `default-value-or-fn` - Default value or function, is only used if value is nil
 
   Example:
+
   ```clojure
   (v/validate (v/default (v/string) "default") "str")  ; Valid
   (v/validate (v/default (v/string) "default") nil)  ; Valid
@@ -649,9 +737,11 @@ Valhalla provides a set of validators for different data types:
 
 - **lazy** - Creates a validator that lazily evaluates a validator function
   Arguments:
+
   - `make-validator-fn` - Function that returns a validator function
 
   Example:
+
   ```clojure
   (declare task)
   (def task (v/lazy
@@ -665,7 +755,6 @@ Valhalla provides a set of validators for different data types:
                     :tasks {:title "str2" :tasks []}])  ; Invalid - returns error
   ```
 
-
 ### JS Interop
 
 Import the library like as follows:
@@ -677,12 +766,15 @@ Import the library like as follows:
 
 - **array** - Validates if a value is a js-array and parses into a vector
   Arguments:
+
   - `validator` - A validator to apply to each array item
 
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected js-array, got [value]"
 
   Example:
+
   ```clojure
   (v/validate
     (vjs/array (v/string)) #js ["str" "str1" "str2"])  ; Valid
@@ -694,12 +786,15 @@ Import the library like as follows:
 
 - **object** - Validates if a value is a JavaScript object with same value type of unknown size
   Arguments:
+
   - `validator` - A validator function applied to each value
 
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected js-object, got [value]"
 
   Example:
+
   ```clojure
   (v/validate
    (vjs/object (v/string)) #js {:a "str" :b "str2" :c "str3"})  ; Valid
@@ -711,12 +806,15 @@ Import the library like as follows:
 
 - **record** - Validates if a value is a js-object and validates specific keys
   Arguments:
+
   - `validator-hash-map` - A hash-map mapping keys to validator functions
 
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected js-object, got [value]"
 
   Example:
+
   ```clojure
   (v/validate
     (vjs/record {:a (v/string)
@@ -738,9 +836,11 @@ Import the library like as follows:
 
 - **iterable->vector** - Validates if a value is a js-array and parses into a vector
   Options:
+
   - `:message` - Custom error message function or string. If not provided, defaults to "Expected js-object, got [value]"
 
   Example:
+
   ```clojure
   (v/validate
     (vjs/iterable-vector) (js/Set. #js ["str" 5 :kw]))  ; Valid
@@ -802,7 +902,6 @@ Custom validators can also transform data during validation:
          result)))))
 ```
 
-
 ### Integration with Existing Schemas
 
 Custom validators can be used anywhere standard validators are used:
@@ -853,4 +952,4 @@ If you encounter any issues or would like to request a new validator, please [cr
 
 ## License
 
-[GPL-3.0 License](LICENSE)
+[
