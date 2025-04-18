@@ -416,10 +416,10 @@
           (is (= res [:v/ok {:a {:b "str"}}]))))
 
       (testing "Supports hash-map with record keys"
-        (is (= ((v/hash-map (v/record {:a (v/number)})
-                            (v/keyword))
-                (ctx/create :value {{:a 1} :b}))
-               [:v/ok {{:a 1} :b}]))))
+        (is (= ((v/record {:test (v/hash-map (v/record {:a (v/number)})
+                                             (v/keyword))})
+                (ctx/create :value {:test {{:a 1} :b}}))
+               [:v/ok {:test {{:a 1} :b}}]))))
 
     (testing "fails"
       (testing "throws error if not given a map"

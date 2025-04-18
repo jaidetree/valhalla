@@ -577,8 +577,15 @@
 (defn- hash-map-error
   [err ctx idx path]
   (if (string? err)
-    {:path (into [idx path] (:path ctx)) :message err}
-    (update err :path #(into [idx path] %))))
+    {:path (into (:path ctx) [idx path]) :message err}
+    (update err :path #(into % [idx path]))))
+
+(defn map->seq
+  [ctx]
+  (let [{:keys [input path]} ctx]
+    (if (map? (get-in input path))
+      (update-in ctx (cons :input path) vec)
+      ctx)))
 
 (defn- hash-map-validators
   [& {:keys [context k-val v-val path-index]}]
@@ -589,7 +596,9 @@
             (let [index (:index ctx)
                   [k-status k-result]
                   (-> ctx
-                      (assoc :input key)
+                      (map->seq)
+                      (ctx/replace-path path-index index)
+                      (update-in [:path] conj 0)
                       (ctx/update-value key)
                       (k-val))
                   [v-status v-result]
