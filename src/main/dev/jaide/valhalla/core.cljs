@@ -398,6 +398,7 @@
          (reduce
           (fn [ctx [key validator]]
             (let [ctx (ctx/replace-path ctx path-index key)
+                  #_#__ (pprint ctx)
                   result (validator ctx)]
               (result-case result
                            :ok (fn [value]
@@ -574,10 +575,10 @@
              errors)))
 
 (defn- hash-map-error
-  [err ctx path]
+  [err ctx idx path]
   (if (string? err)
-    {:path (conj (:path ctx) path) :message err}
-    (update err :path conj path)))
+    {:path (into [idx path] (:path ctx)) :message err}
+    (update err :path #(into [idx path] %))))
 
 (defn- hash-map-validators
   [& {:keys [context k-val v-val path-index]}]
@@ -586,11 +587,9 @@
          (reduce
           (fn [ctx [key value]]
             (let [index (:index ctx)
-                  ctx (-> ctx
-                          (ctx/replace-path path-index index))
                   [k-status k-result]
                   (-> ctx
-                      #_(ctx/replace-path path-index index)
+                      (assoc :input key)
                       (ctx/update-value key)
                       (k-val))
                   [v-status v-result]
@@ -604,9 +603,9 @@
                     (update :index inc)
                     (ctx/accrete k-result v-result))
                 (let [k-errors (->> (extract-errors k-status k-result)
-                                    (map #(hash-map-error % ctx 0)))
+                                    (map #(hash-map-error % ctx index 0)))
                       v-errors (->> (extract-errors v-status v-result)
-                                    (map #(hash-map-error % ctx 1)))
+                                    (map #(hash-map-error % ctx index 1)))
                       errors (concat k-errors v-errors)]
                   (-> ctx
                       (update :index inc)

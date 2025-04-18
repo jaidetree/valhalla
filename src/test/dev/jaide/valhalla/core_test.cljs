@@ -408,11 +408,18 @@
           (is (= res [:v/ok {:a "str"
                              :b 5
                              :c 45.5}]))))
+
       (testing "nested records"
         (let [res ((v/record
                     {:a (v/record {:b (v/string)})})
                    (ctx/create :input {:a {:b "str"}}))]
-          (is (= res [:v/ok {:a {:b "str"}}])))))
+          (is (= res [:v/ok {:a {:b "str"}}]))))
+
+      (testing "Supports hash-map with record keys"
+        (is (= ((v/hash-map (v/record {:a (v/number)})
+                            (v/keyword))
+                (ctx/create :value {{:a 1} :b}))
+               [:v/ok {{:a 1} :b}]))))
 
     (testing "fails"
       (testing "throws error if not given a map"
@@ -425,21 +432,21 @@
                    nil)]
           (is (= (:status res) :v/fail))
           (is (= (:errors res) [{:path [] :message "Expected hash-map record, got nil"}]))
-          (is (= (:output res) nil))))))
+          (is (= (:output res) nil))))
 
-  (testing "collects all errors"
-    (let [res (v/validate
-               (v/record {:a (v/string)
-                          :b (v/number)
-                          :c (v/string->number)})
-               {:a 5
-                :b "5"
-                :c "abc"})]
-      (is (= (:status res) :v/fail))
-      (is (= (:errors res) [{:path [:a] :message "Expected string, got 5"}
-                            {:path [:b] :message "Expected number, got \"5\""}
-                            {:path [:c] :message "Expected numeric string, got \"abc\""}]))
-      (is (= (:output res) nil))))
+      (testing "collects all errors"
+        (let [res (v/validate
+                   (v/record {:a (v/string)
+                              :b (v/number)
+                              :c (v/string->number)})
+                   {:a 5
+                    :b "5"
+                    :c "abc"})]
+          (is (= (:status res) :v/fail))
+          (is (= (:errors res) [{:path [:a] :message "Expected string, got 5"}
+                                {:path [:b] :message "Expected number, got \"5\""}
+                                {:path [:c] :message "Expected numeric string, got \"abc\""}]))
+          (is (= (:output res) nil))))))
 
   (testing "supports custom error messages"
     (let [res (v/validate
