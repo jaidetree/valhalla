@@ -88,15 +88,6 @@
          (update-path new-path)
          (update-value (get-in ctx (cons :input new-path)))))))
 
-(defn replace-path-no-value
-  ([ctx path]
-   (replace-path-no-value ctx (count (:path ctx))) path)
-  ([ctx idx path]
-   (let [prev-path (vec (take idx (:path ctx)))
-         new-path (conj prev-path path)]
-     (-> ctx
-         (update-path new-path)))))
-
 (defn path>
   [ctx path]
   (let [new-path (conj (:path ctx) path)]

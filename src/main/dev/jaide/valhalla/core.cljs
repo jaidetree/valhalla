@@ -580,7 +580,17 @@
     {:path (into (:path ctx) [idx path]) :message err}
     (update err :path #(into % [idx path]))))
 
-(defn map->seq
+(defn- map->seq
+  "Transforms a hash-map into sequence temporarily. This supports accurate
+  pathing so that 0 refers to the key and 1 the value, making errors more
+  useful refering to the key or value. Ensure not used in final context
+  as it would inadvertently transform the output type.
+  
+  Arguments:
+  - ctx - Validation context with :input :path :errors :output attrs
+
+  Returns ctx with input converted.
+  "
   [ctx]
   (let [{:keys [input path]} ctx]
     (if (map? (get-in input path))
@@ -597,8 +607,7 @@
                   [k-status k-result]
                   (-> ctx
                       (map->seq)
-                      (ctx/replace-path path-index index)
-                      (update-in [:path] conj 0)
+                      (update-in [:path] into [index 0])
                       (ctx/update-value key)
                       (k-val))
                   [v-status v-result]
