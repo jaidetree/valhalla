@@ -31,13 +31,13 @@ Add Valhalla to your project using your preferred dependency management tool:
 ### deps.edn
 
 ```clojure
-{:deps {dev.jaide/valhalla {:mvn/version "2025.4.18"}}}
+{:deps {dev.jaide/valhalla {:mvn/version "2025.4.19"}}}
 ```
 
 ### Leiningen/Boot
 
 ```clojure
-[dev.jaide/valhalla "2025.4.18"]
+[dev.jaide/valhalla "2025.4.19"]
 ```
 
 ## Example
