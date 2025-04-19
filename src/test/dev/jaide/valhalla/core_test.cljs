@@ -113,11 +113,16 @@
              [:v/error "Expected numeric string, got \"test\""])))))
 
 (deftest string->number-test
-  (testing "string->number parses numeric strings inputs"
-    (is (= ((v/string->number) (ctx/create :value "5" :input "5"))
-           [:v/ok 5])))
+  (testing "string->number"
+    (testing "passes"
+      (testing "numeric strings inputs"
+        (is (= ((v/string->number) (ctx/create :value "5" :input "5"))
+               [:v/ok 5])))
+      (testing "numbers given accept-numbers"
+        (is (= ((v/string->number {:accept-numbers true}) (ctx/create :value 6))
+               [:v/ok 6])))))
 
-  (testing "string->number fails on non-numeric strings"
+  (testing "fails"
     (testing "> nil"
       (is (= ((v/string->number) (ctx/create :input nil :value nil))
              [:v/error "Expected numeric string, got nil"])))
@@ -144,16 +149,26 @@
              [:v/error "Expected boolean, got \"test\""])))))
 
 (deftest string->boolean-test
-  (testing "Parses boolean string inputs"
-    (testing "> true"
-      (is (= ((v/string->boolean) (ctx/create :value "true"))
-             [:v/ok true])))
+  (testing "string->boolean"
+    (testing "passes"
+      (testing "> true"
+        (is (= ((v/string->boolean) (ctx/create :value "true"))
+               [:v/ok true])))
+      (testing "> false"
+        (is (= ((v/string->boolean) (ctx/create :value "false"))
+               [:v/ok false])))
+      (testing "booleans when accepts-booleans is true"
+        (is (= ((v/string->boolean
+                  {:accept-booleans true}) (ctx/create :value true))
+               [:v/ok true]))
+        (is (= ((v/string->boolean
+                  {:accept-booleans true}) (ctx/create :value false))
+               [:v/ok false])))))
 
-    (testing "> false"
-      (is (= ((v/string->boolean) (ctx/create :value "false"))
-             [:v/ok false]))))
-
-  (testing "string->boolean fails on non-boolean inputs"
+  (testing "fails"
+    (testing "> boolean"
+      (is (= ((v/string->boolean) (ctx/create :value true))
+             [:v/error "Expected boolean-string, got true"])))
     (testing "> nil"
       (is (= ((v/string->boolean) (ctx/create :value nil))
              [:v/error "Expected boolean-string, got nil"])))
@@ -175,27 +190,35 @@
              [:v/error "Expected keyword, got \"test\""])))))
 
 (deftest string->keyword-test
-  (testing "Parses keyword-string inputs"
-    (testing "with : prefix"
-      (is (= ((v/string->keyword) (ctx/create :value ":test-value"))
-             [:v/ok :test-value])))
-    (testing "without : prefix"
-      (is (= ((v/string->keyword) (ctx/create :value "test-value"))
-             [:v/ok :test-value])))
-    (testing "with namespace prefix"
-      (is (= ((v/string->keyword) (ctx/create :value "v/test-value"))
-             [:v/ok :v/test-value]))))
+  (testing "string->keyword"
+    (testing "passes"
+      (testing "with : prefix"
+        (is (= ((v/string->keyword) (ctx/create :value ":test-value"))
+               [:v/ok :test-value])))
+      (testing "without : prefix"
+        (is (= ((v/string->keyword) (ctx/create :value "test-value"))
+               [:v/ok :test-value])))
+      (testing "with namespace prefix"
+        (is (= ((v/string->keyword) (ctx/create :value "v/test-value"))
+               [:v/ok :v/test-value])))
+      (testing "with accept-keywords"
+        (is (= ((v/string->keyword
+                  {:accept-keywords true}) (ctx/create :value :keyword))
+               [:v/ok :keyword]))))
 
-  (testing "string->keyword fails invalid input"
-    (testing "> nil"
-      (is (= ((v/string->keyword) (ctx/create :value nil))
-             [:v/error "Expected keyword-string, got nil"])))
-    (testing "> number"
-      (is (= ((v/string->keyword) (ctx/create :value 5))
-             [:v/error "Expected keyword-string, got 5"])))
-    (testing "> invalid strings"
-      (is (= ((v/string->keyword) (ctx/create :value "hello world"))
-             [:v/error "Expected keyword-string, got \"hello world\""])))))
+    (testing "fails"
+      (testing "> keyword"
+        (is (= ((v/string->keyword) (ctx/create :value :kw))
+               [:v/error "Expected keyword-string, got :kw"])))
+      (testing "> nil"
+        (is (= ((v/string->keyword) (ctx/create :value nil))
+               [:v/error "Expected keyword-string, got nil"])))
+      (testing "> number"
+        (is (= ((v/string->keyword) (ctx/create :value 5))
+               [:v/error "Expected keyword-string, got 5"])))
+      (testing "> invalid strings"
+        (is (= ((v/string->keyword) (ctx/create :value "hello world"))
+               [:v/error "Expected keyword-string, got \"hello world\""]))))))
 
 (deftest symbol-test
   (testing "Validates symbol inputs"
@@ -211,24 +234,31 @@
              [:v/error "Expected keyword, got \"test\""])))))
 
 (deftest string->symbol-test
-  (testing "Parses symbol-string inputs"
-    (testing "without namespace"
-      (is (= ((v/string->symbol) (ctx/create :value "test-value"))
-             [:v/ok 'test-value])))
-    (testing "with namespace"
-      (is (= ((v/string->symbol) (ctx/create :value "some-ns/a-symbol"))
-             [:v/ok 'some-ns/a-symbol]))))
+  (testing "string->symbol"
+    (testing "passes"
+      (testing "without namespace"
+        (is (= ((v/string->symbol) (ctx/create :value "test-value"))
+               [:v/ok 'test-value])))
+      (testing "with namespace"
+        (is (= ((v/string->symbol) (ctx/create :value "some-ns/a-symbol"))
+               [:v/ok 'some-ns/a-symbol])))
+      (testing "with accept-symbols"
+        (is (= ((v/string->symbol {:accept-symbols true}) (ctx/create :value 'a-symbol))
+               [:v/ok 'a-symbol]))))
 
-  (testing "string->keyword fails invalid input"
-    (testing "> nil"
-      (is (= ((v/string->symbol) (ctx/create :value nil))
-             [:v/error "Expected symbol-string, got nil"])))
-    (testing "> number"
-      (is (= ((v/string->symbol) (ctx/create :value 5))
-             [:v/error "Expected symbol-string, got 5"])))
-    (testing "> invalid strings"
-      (is (= ((v/string->symbol) (ctx/create :value "hello world"))
-             [:v/error "Expected symbol-string, got \"hello world\""])))))
+    (testing "fails"
+      (testing "> symbols"
+        (is (= ((v/string->symbol) (ctx/create :value 'sym))
+               [:v/error "Expected symbol-string, got sym"])))
+      (testing "> nil"
+        (is (= ((v/string->symbol) (ctx/create :value nil))
+               [:v/error "Expected symbol-string, got nil"])))
+      (testing "> number"
+        (is (= ((v/string->symbol) (ctx/create :value 5))
+               [:v/error "Expected symbol-string, got 5"])))
+      (testing "> invalid strings"
+        (is (= ((v/string->symbol) (ctx/create :value "hello world"))
+               [:v/error "Expected symbol-string, got \"hello world\""]))))))
 
 (deftest regex-test
   (testing "regex validates matching inputs"
@@ -505,20 +535,29 @@
       (testing "> random string"
         (is (= ((v/date)
                 (ctx/create :value "not-a-date"))
-               [:v/error "Expected instance of Date, got \"not-a-date\""])))
+               [:v/error "Expected valid Date, got \"not-a-date\""])))
       (testing "> random date")
       (is (= ((v/date)
               (ctx/create :value (js/Date. (js/Date.parse "whatever"))))
-             [:v/error "Expected valid date, got Invalid Date"])))))
+             [:v/error "Expected valid Date, got \"Date(NaN)\""])))))
 
 (deftest string->date-test
   (testing "string->date"
-    (testing "parses valid date-string"
-      (is (= ((v/string->date)
-              (ctx/create :value "2025-03-23"))
-             [:v/ok (js/Date. "2025-03-23")])))
+    (testing "passes"
+      (testing "> date-string"
+        (is (= ((v/string->date)
+                (ctx/create :value "Thu Mar 13 2025 16:19:49 GMT-0400 (Eastern Daylight Time)"))
+               [:v/ok (js/Date. "Thu Mar 13 2025 16:19:49 GMT-0400 (Eastern Daylight Time)")])))
+      (testing "with accept-dates"
+        (is (= ((v/string->date {:accept-dates true})
+                (ctx/create :value (js/Date. "Thu Mar 13 2025 16:19:49 GMT-0400 (Eastern Daylight Time)")))
+               [:v/ok (js/Date. "Thu Mar 13 2025 16:19:49 GMT-0400 (Eastern Daylight Time)")]))))
 
     (testing "fails invalid input"
+      (testing "> date"
+        (is (= ((v/string->date)
+                (ctx/create :value (js/Date. "Thu Mar 13 2025 16:19:49 GMT-0400 (Eastern Daylight Time)")))
+               [:v/error "Expected valid date-string, got \"Date(1741897189000)\""])))
       (testing "> invalid value"
         (is (= ((v/string->date)
                 (ctx/create :value :kw))
@@ -528,15 +567,24 @@
                 (ctx/create :value "2025-13-32"))
                [:v/error "Expected valid date-string, got \"2025-13-32\""]))))))
 
-(deftest num->date-test
-  (testing "num->date"
-    (testing "parses valid timestamp floats"
-      (let [ts (js/Date.now)]
-        (is (= ((v/number->date)
-                (ctx/create :value ts))
-               [:v/ok (js/Date. ts)]))))
+(deftest number->date-test
+  (testing "number->date"
+    (testing "passes"
+      (testing "timestamp floats"
+        (let [ts (js/Date.now)]
+          (is (= ((v/number->date)
+                  (ctx/create :value ts))
+                 [:v/ok (js/Date. ts)]))))
+      (testing "with accept-dates true"
+        (is (= ((v/number->date {:accept-dates true})
+                (ctx/create :value (js/Date. 1745076160062)))
+               [:v/ok (js/Date. 1745076160062)]))))
 
-    (testing "fails invalid input"
+    (testing "fails"
+      (testing "> Date"
+        (is (= ((v/number->date)
+                (ctx/create :value (js/Date. 1745076160062)))
+               [:v/error "Expected valid timestamp, got \"Date(1745076160062)\""])))
       (testing "> invalid value"
         (is (= ((v/number->date)
                 (ctx/create :value :kw))
@@ -548,13 +596,24 @@
 
 (deftest date->string-test
   (testing "date->string"
-    (testing "formats date objects to strings"
-      (is (let [date (js/Date. (js/Date.parse "2025-03-23"))]
-            (= ((v/date->string)
-                (ctx/create :value date))
-               [:v/ok (.toISOString date)]))))
+    (testing "parses"
+      (testing "> date objects"
+        (is (let [date (js/Date. (js/Date.parse "2025-03-23"))]
+              (= ((v/date->string)
+                  (ctx/create :value date))
+                 [:v/ok (.toISOString date)]))))
+      (testing "accept-strings accepts ISO strings"
+        (is (let [date (.toISOString (js/Date. (js/Date.parse "2025-03-23")))]
+              (= ((v/date->string {:accept-strings true})
+                  (ctx/create :value date))
+                 [:v/ok date])))))
+
 
     (testing "fails invalid input"
+      (testing "> date string"
+        (is (= ((v/date->string)
+                (ctx/create :value (.toISOString (js/Date. 1741897189000))))
+               [:v/error "Expected valid date, got \"2025-03-13T20:19:49.000Z\""])))
       (testing "> invalid value"
         (is (= ((v/date->string)
                 (ctx/create :value :kw))
@@ -562,17 +621,27 @@
       (testing "> invalid date"
         (is (= ((v/date->string)
                 (ctx/create :value (js/Date. "invalid")))
-               [:v/error "Expected valid date, got \"Invalid Date\""]))))))
+               [:v/error "Expected valid date, got \"Date(NaN)\""]))))))
 
 (deftest date->number-test
   (testing "date->number"
-    (testing "formats date objects to numbers"
-      (is (let [date (js/Date. (js/Date.parse "2025-03-23"))]
-            (= ((v/date->number)
-                (ctx/create :value date))
-               [:v/ok (.getTime date)]))))
+    (testing "parses"
+      (testing "date objects to numbers"
+        (is (let [date (js/Date. (js/Date.parse "2025-03-23"))]
+              (= ((v/date->number)
+                  (ctx/create :value date))
+                 [:v/ok (.getTime date)]))))
+      (testing "with accept-numbers true"
+        (is (let [date 1741897189000]
+              (= ((v/date->number {:accept-numbers true})
+                  (ctx/create :value date))
+                 [:v/ok date])))))
 
     (testing "fails invalid input"
+      (testing "> invalid value"
+        (is (= ((v/date->number)
+                (ctx/create :value 1741897189000))
+               [:v/error "Expected valid date, got 1741897189000"])))
       (testing "> invalid value"
         (is (= ((v/date->number)
                 (ctx/create :value :kw))
@@ -580,7 +649,7 @@
       (testing "> invalid date"
         (is (= ((v/date->number)
                 (ctx/create :value (js/Date. "invalid")))
-               [:v/error "Expected valid date, got \"Invalid Date\""]))))))
+               [:v/error "Expected valid date, got \"Date(NaN)\""]))))))
 
 (deftest nilable-test
   (testing "nilable"

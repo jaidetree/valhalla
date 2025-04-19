@@ -132,6 +132,10 @@
       result
       (throw (js/Error. (str "ValidationError:\n" (message result)))))))
 
+(defn- finite?
+  [num]
+  (js/Number.isFinite num))
+
 (defn string
   "Validates if a value is a string.
 
@@ -190,20 +194,23 @@
 
    Options:
    - :message - Custom error message function or string
+   - :accept-numbers - Boolean to accept pre-transformed numbers
 
    Returns a validator function that accepts a context and returns a result
    with the parsed number value if successful."
   ([] (string->number {}))
-  ([opts]
+  ([{:keys [accept-numbers] :as opts}]
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
                              (str "Expected numeric string, got " (u/stringify value))))]
        (try
-         (let [value (js/Number.parseFloat value)]
-           (if (not (js/Number.isNaN value))
-             (ok value)
-             (throw (js/Error. :fail))))
+         (if (and accept-numbers (finite? value))
+           (ok value)
+           (let [value (js/Number.parseFloat value)]
+             (if (finite? value)
+               (ok value)
+               (throw (js/Error. :fail)))))
          (catch :default _err
            (error (message context))))))))
 
@@ -229,23 +236,30 @@
 
    Options:
    - :message - Custom error message function or string
+   - :accept-booleans - Boolean to accept pre-transformed values
 
    Returns a validator function that accepts a context and returns a result
    with the parsed boolean value if successful."
   ([] (string->boolean {}))
-  ([opts]
+  ([{:keys [accept-booleans] :as opts}]
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
                              (str "Expected boolean-string, got " (u/stringify value))))]
        (try
-         (if (not (string? value))
-           (error (message context))
+         (cond
+           (and accept-booleans (boolean? value))
+           (ok value)
+
+           (string? value)
            (let [value (s/lower-case value)]
              (case value
                "true" (ok true)
                "false" (ok false)
-               (error (message context)))))
+               (error (message context))))
+
+           :else
+           (throw (js/Error. :invalid)))
          (catch :default _err
            (error (message context))))))))
 
@@ -271,24 +285,29 @@
 
    Options:
    - :message - Custom error message function or string
+   - :accept-keywords - Boolean to accept pre-transformed keywords
 
    Returns a validator function that accepts a context and returns a result
-   with the converted keyword if successful. The string must match the pattern
-   for valid keywords (optionally starting with ':' followed by valid characters)."
+   with the converted keyword if successful."
   ([] (string->keyword {}))
-  ([opts]
+  ([{:keys [accept-keywords] :as opts}]
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
                              (str "Expected keyword-string, got " (u/stringify value))))]
-       (if (or (not (string? value))
-               (not (re-matches #"^:?[a-zA-Z][-_a-zA-Z0-9\/]*$" value)))
-         (error (message context))
-         (try
+       (try
+         (cond
+           (and accept-keywords (keyword? value))
+           (ok value)
+
+           (and (string? value)
+                (some? (re-find #"^:?[a-zA-Z][-_a-zA-Z0-9\/]*$" value)))
            (let [value (s/replace value #"^:" "")]
              (ok (cc/keyword value)))
-           (catch :default _err
-             (error (message context)))))))))
+
+           :else (throw (js/Error. :invalid)))
+         (catch :default _err
+           (error (message context))))))))
 
 (defn symbol
   "Validates if a value is a symbol.
@@ -312,23 +331,30 @@
 
    Options:
    - :message - Custom error message function or string
+   - :accept-symbols - Boolean to accept pre-transformed symbols
 
    Returns a validator function that accepts a context and returns a result
    with the converted symbol if successful. The string must match the pattern
    for valid symbols (starting with a letter followed by valid characters)."
   ([] (string->symbol {}))
-  ([opts]
+  ([{:keys [accept-symbols] :as opts}]
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
                              (str "Expected symbol-string, got " (u/stringify value))))]
-       (if (or (not (string? value))
-               (not (re-matches #"^[a-zA-Z][-_a-zA-Z0-9\/]*$" value)))
-         (error (message context))
-         (try
+       (try
+         (cond
+           (and accept-symbols (symbol? value))
+           (ok value)
+
+           (and (string? value)
+                (some? (re-find #"^[a-zA-Z][-_a-zA-Z0-9\/]*$" value)))
            (ok (cc/symbol value))
-           (catch :default _err
-             (error (message context)))))))))
+
+           :else
+           (throw (js/Error. :invalid)))
+         (catch :default _err
+           (error (message context))))))))
 
 (defn regex
   "Validates if a string matches a regular expression pattern.
@@ -745,9 +771,9 @@
 
 (defn- date?
   [date]
-  (not (js/Number.isNaN (.getTime date))))
+  (and (instance? js/Date date)
+       (finite? (.getTime date))))
 
-;; @TODO Clean up with chain?
 (defn date
   "Validates if a value is a valid JavaScript Date object.
 
@@ -757,39 +783,42 @@
    Returns a validator function that accepts a context and returns a result
    with the original Date object if valid."
   [& [opts]]
-  (fn [context]
-    (let [result ((instance js/Date) context)
-          message (msg-fn (:message opts)
+  (fn [{:keys [value] :as context}]
+    (let [message (msg-fn (:message opts)
                           (fn [{:keys [value]}]
-                            (str "Expected valid date, got " (.toString value))))]
-      (result-case result
-                   :ok   (fn [value]
-                           (if (date? value)
-                             (ok value)
-                             (error (message context))))
-                   :err  error
-                   :errs errors))))
+                            (str "Expected valid Date, got " (u/stringify value))))]
+      (if (date? value)
+        (ok value)
+        (error (message context))))))
 
 (defn string->date
   "Converts a string to a JavaScript Date object.
 
    Options:
    - :message - Custom error message function or string
+   - :accept-dates - Boolean to accept pre-transformed, valid dates
 
    Returns a validator function that accepts a context and returns a result
    with a Date object if the string can be parsed as a valid date."
   ([] (string->date {}))
-  ([opts]
+  ([{:keys [accept-dates] :as opts}]
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
                              (str "Expected valid date-string, got " (u/stringify value))))]
        (try
-         (cc/assert (string? value))
-         (let [date (js/Date. (js/Date.parse value))]
-           (if (date? date)
-             (ok date)
-             (throw (js/Error. "Invalid Date"))))
+         (if (and accept-dates
+                  (date? value))
+           (ok value)
+           (do
+             (cc/assert (string? value))
+             (let [unixtime (js/Date.parse value)
+                   date (if (finite? unixtime)
+                          (js/Date. unixtime)
+                          (throw (js/Error. "Invalid Date")))]
+               (if (date? date)
+                 (ok date)
+                 (throw (js/Error. "Invalid Date"))))))
          (catch :default _err
            (error (message context))))))))
 
@@ -798,42 +827,60 @@
 
    Options:
    - :message - Custom error message function or string
+   - :accept-dates - Boolean to accept pre-transformed, valid dates
 
    Returns a validator function that accepts a context and returns a result
    with a Date object if the number represents a valid timestamp."
   ([] (number->date {}))
-  ([opts]
+  ([{:keys [accept-dates] :as opts}]
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
                              (str "Expected valid timestamp, got " (u/stringify value))))]
        (try
-         (cc/assert (float? value))
-         (let [date (js/Date. value)]
-           (if (date? date)
-             (ok date)
-             (throw (js/Error. "Invalid Date"))))
+         (if (and accept-dates
+                  (date? value))
+           (ok value)
+           (do
+             (cc/assert (finite? value))
+             (let [date (js/Date. value)]
+               (if (date? date)
+                 (ok date)
+                 (throw (js/Error. "Invalid Date"))))))
          (catch :default _err
            (error (message context))))))))
+
+(defn- iso8601?
+  [s]
+  (some? (re-find #"[\d]{4}-[\d]{2}-[\d]{2}T[\d]{2}:[\d]{2}:[\d]{2}.[\d]{3}(?:Z|[-+][\d]{2}:[\d]{2})" s)))
+
+(comment
+  (-> (js/Date.) (.toISOString))
+  (iso8601? (-> (js/Date.) (.toISOString)))
+  (iso8601? (-> (js/Date.) (.toISOString) (.replace #"Z" "-04:00"))))
 
 (defn date->string
   "Converts a JavaScript Date object to an ISO string.
 
    Options:
    - :message - Custom error message function or string
+   - :accept-strings - Boolean to accept pre-transformed, pattern-tested stings. 
 
    Returns a validator function that accepts a context and returns a result
    with the ISO string representation of the date."
   ([] (date->string {}))
-  ([opts]
+  ([{:keys [accept-strings] :as opts}]
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
                              (str "Expected valid date, got " (u/stringify value))))]
        (try
-         (if (date? value)
-           (ok (.toISOString value))
-           (throw (js/Error. :invalid)))
+         (cond
+           (and accept-strings
+                (string? value)
+                (iso8601? value)) (ok value)
+           (date? value) (ok (.toISOString value))
+           :else (throw (js/Error. :invalid)))
          (catch :default _err
            (error (message context))))))))
 
@@ -842,19 +889,21 @@
 
    Options:
    - :message - Custom error message function or string
+   - :accept-numbers - Boolean to accept pre-transformed numbers
 
    Returns a validator function that accepts a context and returns a result
    with the timestamp (milliseconds since epoch) of the date."
   ([] (date->number {}))
-  ([opts]
+  ([{:keys [accept-numbers] :as opts}]
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]
                              (str "Expected valid date, got " (u/stringify value))))]
        (try
-         (if (date? value)
-           (ok (.getTime value))
-           (throw (js/Error. :invalid)))
+         (cond
+           (and accept-numbers (number? value)) (ok value)
+           (date? value) (ok (.getTime value))
+           :else (throw (js/Error. :invalid)))
          (catch :default _err
            (error (message context))))))))
 
@@ -961,10 +1010,6 @@
       (if (empty? (:errors ctx))
         (ok (:output ctx))
         (errors (:errors ctx))))))
-
-(defn ctx->ok
-  [{:keys [output] :as ctx}]
-  [:v/ok output])
 
 (defn- union-validators
   [{:keys [validators context]}]

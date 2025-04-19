@@ -5,7 +5,7 @@
   (try
     (-> (cond
           (string? value) (js/String value)
-          (instance? js/Date value) (js/String value)
+          (instance? js/Date value) (str "Date(" (.getTime value) ")")
           :else value)
         (pr-str))
     (catch :default _err
