@@ -159,6 +159,28 @@ Valhalla makes it easy to work with JavaScript data:
 
   By default, it will stringify error messages with `v/errors->string`.
 
+- **parse** - Applies a validator to data and returns parsed output, throws an error if invalid
+  Arguments:
+
+  - `validator` - A validator function
+  - `input` - Input data to validate
+  - `opts` - Optional keyword settings
+
+  Options:
+
+  - `:message` - A string or function to format validator output. Only called if validator fails
+
+  Returns the parsed output.
+
+  Example:
+
+  ```clojure
+  (v/parse (v/string->number) "5")
+  ;; #=> 5
+  ```
+
+  By default, it will stringify error messages with `v/errors->string`.
+
 - **errors->string** - Format a collection of validation errors into a line-separated string
   Arguments:
 

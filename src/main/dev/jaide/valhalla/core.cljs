@@ -132,6 +132,18 @@
       result
       (throw (js/Error. (str "ValidationError:\n" (message result)))))))
 
+(defn parse
+  "Validates input and throws an error if invalid.
+
+  Options:
+  - :message - Custom error message function or string
+
+  Returns the parsed result if valid
+  "
+  [validator input & {:keys [_message] :as opts}]
+  (let [result (assert-valid validator input opts)]
+    (:output result)))
+
 (defn- finite?
   [num]
   (js/Number.isFinite num))
@@ -205,8 +217,14 @@
                            (fn [{:keys [value]}]
                              (str "Expected numeric string, got " (u/stringify value))))]
        (try
-         (if (and accept-numbers (finite? value))
+         (cond
+           (and accept-numbers (finite? value))
            (ok value)
+
+           (not (string? value))
+           (throw (js/Error. :fail))
+
+           :else
            (let [value (js/Number.parseFloat value)]
              (if (finite? value)
                (ok value)

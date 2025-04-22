@@ -54,6 +54,16 @@
                               [(v/number) (v/keyword) (v/string)])
                              ["str" 5 :kw]))))))
 
+(deftest parse-test
+  (testing "parse"
+    (testing "returns output when valid"
+      (let [parsed (v/parse (v/string->number) "5")]
+        (is (= parsed 5))))
+    (testing "throws when invalid"
+      (is (thrown? :default (v/parse
+                             (v/string->number)
+                             5))))))
+
 (deftest errors->string-test
   (testing "Formats errors to string"
     (is (= (v/errors->string
@@ -757,7 +767,31 @@
                          (v/union (v/literal {})
                                   (v/hash-map (v/keyword) (v/assert fn?))))
                         {:test-1 {}
-                         :test-2 {:id identity}})))))
+                         :test-2 {:id identity}}))))
+      
+      (testing "alternate records"
+        (let [validator (v/record
+                          {:transitions (v/vector
+                                          (v/union
+                                            (v/record
+                                              {:from (v/vector (v/keyword))
+                                               :actions (v/vector (v/keyword))
+                                               :to (v/vector (v/keyword))
+                                               :do (v/assert fn?)})
+                                            (v/record
+                                              {:from (v/vector (v/keyword))
+                                               :actions (v/vector (v/keyword))
+                                               :to (v/keyword)})))})]
+          (is (v/assert-valid 
+                validator
+                {:transitions [{:from [:closed :open-task]
+                                :actions [:new-task]
+                                :to :new-task}
+                               {:from [:closed :open-task]
+                                :actions [:new-task]
+                                :to [:new-task]
+                                :do (fn [] nil)}]})))))
+
     (testing "fails"
       (testing "last failing validator"
         (is (= ((v/union

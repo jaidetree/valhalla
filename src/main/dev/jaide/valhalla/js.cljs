@@ -53,7 +53,8 @@
     (let [message (msg-fn (:message opts)
                           (fn [{:keys [value]}]
                             (str "Expected js-object, got " (u/stringify value))))]
-      (if (not (object? value))
+      (if (or (js/Array.isArray value)
+              (not (instance? js/Object value)))
         (error (message context))
         (let [idx (count (:path context))
               ctx (record-validators
