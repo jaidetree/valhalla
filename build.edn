@@ -1,5 +1,5 @@
 {:lib dev.jaide/valhalla
- :version "2025.4.21"
+ :version "2025.4.24"
  :description "A ClojureScript validation library for parsing and validating data with an emphasis on intuitive interfaces and JavaScript interoperability"
  :source-dirs ["src/main"]
  :licenses [{:name "GPL-3.0"
