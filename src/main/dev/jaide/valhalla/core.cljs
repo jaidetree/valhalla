@@ -442,8 +442,8 @@
          (reduce
           (fn [ctx [key validator]]
             (let [ctx (ctx/replace-path ctx path-index key)
-                  #_#__ (pprint ctx)
-                  result (validator ctx)]
+                  result (validator (-> ctx
+                                        (assoc :errors [])))]
               (result-case result
                            :ok (fn [value]
                                  (-> ctx
@@ -452,6 +452,43 @@
                                   (ctx/raise-error ctx error))
                            :errs (fn [errors]
                                    (ctx/raise-errors ctx errors)))))
+          context))))
+
+(defn- vector-validator
+  [{:keys [context validator path-index]}]
+  (let [error-idx (count (:errors context))
+        context (-> context
+                    (ctx/update-output [])
+                    (assoc :value-idx 0)
+                    (assoc :output-idx 0)
+                    (assoc :ok true))]
+    (->> (:value context)
+         (reduce
+          (fn [ctx _value]
+            (let [{:keys [value-idx output-idx]} ctx
+                  ctx (-> ctx
+                          (ctx/replace-path path-index value-idx))
+                  result (validator (-> ctx
+                                        (assoc :errors [])))]
+              (result-case result
+                           :ok (fn [value]
+                                 (-> (if (:ok ctx)
+                                       (ctx/accrete ctx output-idx value)
+                                       ctx)
+                                     (update :output-idx inc)
+                                     (update :value-idx inc)))
+
+                           :err (fn [error]
+                                  (-> ctx
+                                      (ctx/raise-error error)
+                                      (assoc :ok false)
+                                      (update :value-idx inc)))
+
+                           :errs (fn [errors]
+                                   (-> ctx
+                                       (ctx/raise-errors errors)
+                                       (assoc :ok false)
+                                       (update :value-idx inc))))))
           context))))
 
 (defn vector
@@ -473,11 +510,10 @@
                              (str "Expected vector, got " (u/stringify value))))]
        (if (vector? value)
          (let [idx (count (:path context))
-               ctx (reduce-validators
+               ctx (vector-validator
                     {:context context
-                     :path-index idx
-                     :validator-kvs (map-indexed cc/vector (repeat (count value) validator))
-                     :output []})]
+                     :validator validator
+                     :path-index idx})]
            (if (empty? (:errors ctx))
              (ok (vec (:output ctx)))
              (errors (:errors ctx))))

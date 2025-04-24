@@ -325,39 +325,29 @@
                            {:path [1] :message "Expected number, got \"str\""}
                            {:path [2] :message "Expected number, got sym"}
                            {:path [3] :message "Expected number, got nil"}]])))
+
       (testing "missing keys in record"
         (is (= ((v/vector (v/record
                            {:a (v/vector (v/number))
                             :b (v/vector (v/number))
                             :c (v/vector (v/number))}))
                 (ctx/create :value [{:a [0] :b [1] :c [2]}
-                                    {:a [1] :c [2]}]))
+                                    {:a [1] :c [2]}
+                                    {:a [0] :b [1] :c [2]}]))
                [:v/errors [{:path [1 :b] :message "Expected vector, got nil"}
                            #_{:path [1 :b] :message "Expected vector, got nil"}]])))
 
       (testing "missing keys in union records"
-        (is (= ((v/record
-                 {:transitions (v/vector
-                                (v/union
-                                 (v/record
-                                  {:from (v/vector (v/keyword))
-                                   :actions (v/vector (v/keyword))
-                                   :to (v/vector (v/keyword))})
-                                 (v/record
-                                  {:from (v/vector (v/keyword))
-                                   :actions (v/vector (v/keyword))
-                                   :to (v/keyword)})))})
-                (ctx/create :value {:transitions [{:from [:a]
-                                                   :actions [:b]
-                                                   :to [:c]}
-                                                  {:from [:a]
-                                                   :action [:b]
-                                                   :to :c}
-                                                  {:from [:a]
-                                                   :actions [:b]
-                                                   :to [:c]}]}))
-               [:v/errors [{:path [1 :b] :message "Expected vector, got nil"}
-                           #_{:path [1 :b] :message "Expected vector, got nil"}]]))))))
+        (is (= ((v/vector
+                 (v/union
+                  (v/record
+                   {:a (v/number)})
+                  (v/record
+                   {:b (v/number)})))
+                (ctx/create :value [{:a 1}
+                                    {:c 2}
+                                    {:b 3}]))
+               [:v/errors [{:path [1 :b] :message "Expected number, got nil"}]]))))))
 
 (deftest vector-tuple-test
   (testing "vector-tuple"
