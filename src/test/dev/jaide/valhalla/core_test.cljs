@@ -169,10 +169,10 @@
                [:v/ok false])))
       (testing "booleans when accepts-booleans is true"
         (is (= ((v/string->boolean
-                  {:accept-booleans true}) (ctx/create :value true))
+                 {:accept-booleans true}) (ctx/create :value true))
                [:v/ok true]))
         (is (= ((v/string->boolean
-                  {:accept-booleans true}) (ctx/create :value false))
+                 {:accept-booleans true}) (ctx/create :value false))
                [:v/ok false])))))
 
   (testing "fails"
@@ -213,7 +213,7 @@
                [:v/ok :v/test-value])))
       (testing "with accept-keywords"
         (is (= ((v/string->keyword
-                  {:accept-keywords true}) (ctx/create :value :keyword))
+                 {:accept-keywords true}) (ctx/create :value :keyword))
                [:v/ok :keyword]))))
 
     (testing "fails"
@@ -312,17 +312,52 @@
 
 (deftest vector-test
   (testing "vector"
-    (testing "validates vectors with same type"
-      (is (= ((v/vector (v/number))
-              (ctx/create :value [1 2 3 4 5]))
-             [:v/ok [1 2 3 4 5]])))
-    (testing "fails invalid input"
+    (testing "passes"
+      (testing "validates vectors with same type"
+        (is (= ((v/vector (v/number))
+                (ctx/create :value [1 2 3 4 5]))
+               [:v/ok [1 2 3 4 5]]))))
+
+    (testing "fails"
       (testing "> mixed types"
         (is (= ((v/vector (v/number)) (ctx/create :value [:kw "str" 'sym nil]))
                [:v/errors [{:path [0] :message "Expected number, got :kw"}
                            {:path [1] :message "Expected number, got \"str\""}
                            {:path [2] :message "Expected number, got sym"}
-                           {:path [3] :message "Expected number, got nil"}]]))))))
+                           {:path [3] :message "Expected number, got nil"}]])))
+      (testing "missing keys in record"
+        (is (= ((v/vector (v/record
+                           {:a (v/vector (v/number))
+                            :b (v/vector (v/number))
+                            :c (v/vector (v/number))}))
+                (ctx/create :value [{:a [0] :b [1] :c [2]}
+                                    {:a [1] :c [2]}]))
+               [:v/errors [{:path [1 :b] :message "Expected vector, got nil"}
+                           #_{:path [1 :b] :message "Expected vector, got nil"}]])))
+
+      (testing "missing keys in union records"
+        (is (= ((v/record
+                 {:transitions (v/vector
+                                (v/union
+                                 (v/record
+                                  {:from (v/vector (v/keyword))
+                                   :actions (v/vector (v/keyword))
+                                   :to (v/vector (v/keyword))})
+                                 (v/record
+                                  {:from (v/vector (v/keyword))
+                                   :actions (v/vector (v/keyword))
+                                   :to (v/keyword)})))})
+                (ctx/create :value {:transitions [{:from [:a]
+                                                   :actions [:b]
+                                                   :to [:c]}
+                                                  {:from [:a]
+                                                   :action [:b]
+                                                   :to :c}
+                                                  {:from [:a]
+                                                   :actions [:b]
+                                                   :to [:c]}]}))
+               [:v/errors [{:path [1 :b] :message "Expected vector, got nil"}
+                           #_{:path [1 :b] :message "Expected vector, got nil"}]]))))))
 
 (deftest vector-tuple-test
   (testing "vector-tuple"
@@ -449,6 +484,20 @@
                              :b 5
                              :c 45.5}]))))
 
+      (testing "drops extra pairs"
+        (let [res ((v/record
+                    {:a (v/string)
+                     :b (v/number)
+                     :c (v/string->number)})
+                   (ctx/create
+                    :input {:a "str"
+                            :b 5
+                            :d :kw
+                            :c "45.5"}))]
+          (is (= res [:v/ok {:a "str"
+                             :b 5
+                             :c 45.5}]))))
+
       (testing "nested records"
         (let [res ((v/record
                     {:a (v/record {:b (v/string)})})
@@ -464,6 +513,7 @@
     (testing "fails"
       (testing "throws error if not given a map"
         (is (thrown? :default (v/validate (v/record :other) {:a 1 :b 2}))))
+
       (testing "non-hash-map value"
         (let [res (v/validate
                    (v/record {:a (v/string)
@@ -472,6 +522,17 @@
                    nil)]
           (is (= (:status res) :v/fail))
           (is (= (:errors res) [{:path [] :message "Expected hash-map record, got nil"}]))
+          (is (= (:output res) nil))))
+
+      (testing "catches missing kv pairs"
+        (let [res (v/validate
+                   (v/record {:a (v/string)
+                              :b (v/number)
+                              :c (v/string->number)})
+                   {:a "string"
+                    :c "5"})]
+          (is (= (:status res) :v/fail))
+          (is (= (:errors res) [{:path [:b] :message "Expected number, got nil"}]))
           (is (= (:output res) nil))))
 
       (testing "collects all errors"
@@ -618,7 +679,6 @@
                   (ctx/create :value date))
                  [:v/ok date])))))
 
-
     (testing "fails invalid input"
       (testing "> date string"
         (is (= ((v/date->string)
@@ -762,35 +822,35 @@
                [:v/ok 5])))
       (testing "complex validators"
         (is (v/valid? (v/assert-valid
-                        (v/hash-map
-                         (v/keyword)
-                         (v/union (v/literal {})
-                                  (v/hash-map (v/keyword) (v/assert fn?))))
-                        {:test-1 {}
-                         :test-2 {:id identity}}))))
-      
+                       (v/hash-map
+                        (v/keyword)
+                        (v/union (v/literal {})
+                                 (v/hash-map (v/keyword) (v/assert fn?))))
+                       {:test-1 {}
+                        :test-2 {:id identity}}))))
+
       (testing "alternate records"
         (let [validator (v/record
-                          {:transitions (v/vector
-                                          (v/union
-                                            (v/record
-                                              {:from (v/vector (v/keyword))
-                                               :actions (v/vector (v/keyword))
-                                               :to (v/vector (v/keyword))
-                                               :do (v/assert fn?)})
-                                            (v/record
-                                              {:from (v/vector (v/keyword))
-                                               :actions (v/vector (v/keyword))
-                                               :to (v/keyword)})))})]
-          (is (v/assert-valid 
-                validator
-                {:transitions [{:from [:closed :open-task]
-                                :actions [:new-task]
-                                :to :new-task}
-                               {:from [:closed :open-task]
-                                :actions [:new-task]
-                                :to [:new-task]
-                                :do (fn [] nil)}]})))))
+                         {:transitions (v/vector
+                                        (v/union
+                                         (v/record
+                                          {:from (v/vector (v/keyword))
+                                           :actions (v/vector (v/keyword))
+                                           :to (v/vector (v/keyword))
+                                           :do (v/assert fn?)})
+                                         (v/record
+                                          {:from (v/vector (v/keyword))
+                                           :actions (v/vector (v/keyword))
+                                           :to (v/keyword)})))})]
+          (is (v/assert-valid
+               validator
+               {:transitions [{:from [:closed :open-task]
+                               :actions [:new-task]
+                               :to :new-task}
+                              {:from [:closed :open-task]
+                               :actions [:new-task]
+                               :to [:new-task]
+                               :do (fn [] nil)}]})))))
 
     (testing "fails"
       (testing "last failing validator"
