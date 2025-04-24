@@ -127,10 +127,10 @@
         message (cond (string? message) (constantly message)
                       (fn? message)     message
                       :else             (fn [{:keys [errors]}]
-                                          (errors->string errors)))]
+                                          (str "ValidationError:\n" (errors->string errors))))]
     (if (valid? result)
       result
-      (throw (js/Error. (str "ValidationError:\n" (message result)))))))
+      (throw (js/Error. (message result))))))
 
 (defn parse
   "Validates input and throws an error if invalid.
