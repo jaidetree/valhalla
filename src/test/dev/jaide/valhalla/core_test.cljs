@@ -1,11 +1,13 @@
 (ns dev.jaide.valhalla.core-test
   (:require
    [cljs.test :refer [deftest testing is]]
+   [dev.jaide.pprint :refer [pprint]]
    [dev.jaide.valhalla.core :as v]
    [dev.jaide.valhalla.context :as ctx]))
 
 (deftest ok-test
   (testing "Ok values"
+    (pprint "test message")
     (is (= (v/ok "a-value")
            [:v/ok "a-value"]))))
 

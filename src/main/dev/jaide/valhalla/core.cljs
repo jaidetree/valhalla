@@ -5,7 +5,7 @@
   (:require
    [clojure.core :as cc]
    [clojure.string :as s]
-   [dev.jaide.utils :refer [pprint]]
+   [dev.jaide.pprint :refer [pprint]]
    [dev.jaide.valhalla.context :as ctx]
    [dev.jaide.valhalla.utils :refer [msg-fn] :as u]))
 

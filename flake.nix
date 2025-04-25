@@ -19,7 +19,7 @@
           pkgs.clojure-lsp
           pkgs.neil
           pkgs.nodejs_23
-          pkgs.temurin-jre-bin-17
+          pkgs.temurin-jre-bin-21
         ];
         shellHook = ''
           export PATH="node_modules/.bin":"$PATH";

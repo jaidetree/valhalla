@@ -1,8 +1,4 @@
-;; shadow-cljs configuration
 {:deps {:aliases [cljs]}
-
- :dependencies
- []
 
  :builds
  {:test {:target :node-test
@@ -10,7 +6,7 @@
          :ns-regexp "-test"
          :autorun true
          :compiler-options {:warnings {:invalid-arithmetic false}}
-         :dev {:build-options {:ns-aliases {dev.jaide.utils/pprint clojure.pprint/pprint}}}
+         :dev {:build-options {:ns-aliases {dev.jaide.pprint cljs.pprint}}}
          :release {:autorun false
                    :compiler-options {:optimizations :simple
                                       :elide-asserts false}}}}}
