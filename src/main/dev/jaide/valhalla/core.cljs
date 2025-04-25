@@ -4,8 +4,8 @@
                             uuid vector])
   (:require
    [clojure.core :as cc]
-   [clojure.pprint :refer [pprint]]
    [clojure.string :as s]
+   [dev.jaide.utils :refer [pprint]]
    [dev.jaide.valhalla.context :as ctx]
    [dev.jaide.valhalla.utils :refer [msg-fn] :as u]))
 

@@ -10,6 +10,7 @@
          :ns-regexp "-test"
          :autorun true
          :compiler-options {:warnings {:invalid-arithmetic false}}
+         :dev {:build-options {:ns-aliases {dev.jaide.utils/pprint clojure.pprint/pprint}}}
          :release {:autorun false
                    :compiler-options {:optimizations :simple
                                       :elide-asserts false}}}}}

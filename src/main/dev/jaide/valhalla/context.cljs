@@ -1,7 +1,7 @@
 (ns dev.jaide.valhalla.context
   (:refer-clojure :exclude [get-in])
   (:require
-   [clojure.pprint :refer [pprint]]))
+   [dev.jaide.utils :refer [pprint]]))
 
 (defn unset?
   [v]

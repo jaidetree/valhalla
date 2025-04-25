@@ -1,7 +1,7 @@
 (ns dev.jaide.valhalla.js
   (:refer-clojure :exclude [array])
   (:require
-   [clojure.pprint :refer [pprint]]
+   [dev.jaide.utils :refer [pprint]]
    [dev.jaide.valhalla.core :refer [error ok errors result-case]]
    [dev.jaide.valhalla.context :as ctx]
    [dev.jaide.valhalla.utils :refer [msg-fn] :as u]))
