@@ -33,9 +33,9 @@
   (fn [{:keys [value] :as context}]
     (let [message (msg-fn (:message opts)
                           (fn [{:keys [value]}]
-                            (str "Expected to read js prop " (pr-str prop-name)
-                                 ", got" value)))]
-      (if (instance? js/Object value)
+                            (str "Expected js prop " (pr-str prop-name)
+                                 ", got " (u/stringify value))))]
+      (if (js-in prop-name value)
         (let [prop-value (aget value prop-name)]
           [:v/ctx (-> context
                       (update :path conj prop-name)

@@ -21,7 +21,7 @@
                       (vjs/prop "whatever")
                       (v/boolean))
                 (ctx/create :value js/process))
-               [:v/errors [{:path [] :message "Expected boolean, got nil"}]]))))))
+               [:v/errors [{:path [] :message "Expected js prop \"whatever\", got nil"}]]))))))
 
 (def record-test-data
   #js {:a #js {:b #js {:c "str"
