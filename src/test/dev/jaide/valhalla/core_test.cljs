@@ -7,7 +7,6 @@
 
 (deftest ok-test
   (testing "Ok values"
-    (pprint "test message")
     (is (= (v/ok "a-value")
            [:v/ok "a-value"]))))
 

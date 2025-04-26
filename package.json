@@ -21,6 +21,6 @@
   "homepage": "https://github.com/jaidetree/valhalla#readme",
   "devDependencies": {
     "nbb": "^1.3.196",
-    "shadow-cljs": "^3.0.1"
+    "shadow-cljs": "^3.0.3"
   }
 }
