@@ -61,14 +61,16 @@
 
   Takes a result vector [status value] and handler functions for each possible status.
   Returns the result of applying the matching handler to the value."
-  [[status val-or-msg] & {:keys [ok err errs]
+  [[status val-or-msg] & {:keys [ok err errs ctx]
                           :or {ok identity
                                err identity
-                               errs identity}}]
+                               errs identity
+                               ctx identity}}]
   (case status
     :v/ok     (ok val-or-msg)
     :v/error  (err val-or-msg)
     :v/errors (errs val-or-msg)
+    :v/ctx    (ctx val-or-msg)
     (throw (js/Error. (str "Could not match status type " (u/stringify status))))))
 
 (defn valid?

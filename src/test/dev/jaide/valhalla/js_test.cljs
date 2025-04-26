@@ -10,16 +10,22 @@
   (testing "prop"
     (testing "passes"
       (testing "nested data"
-        (is (= ((vjs/prop "features"
-                          (vjs/prop "debug" (v/boolean)))
+        (is (= ((v/-> (vjs/prop "features")
+                      (vjs/prop "debug")
+                      (v/boolean))
                 (ctx/create :value js/process))
                [:v/ok false]))))
     (testing "fails"
       (testing "invalid targets"
-        (is (= ((vjs/prop "features"
-                          (vjs/prop "whatever" (v/boolean)))
+        (is (= ((v/-> (vjs/prop "features")
+                      (vjs/prop "whatever")
+                      (v/boolean))
                 (ctx/create :value js/process))
-               [:v/error "Expected boolean, got nil"]))))))
+               [:v/errors [{:path [] :message "Expected boolean, got nil"}]]))))))
+
+(def record-test-data
+  #js {:a #js {:b #js {:c "str"
+                       :d 5}}})
 
 (deftest record-test
   (testing "record"
@@ -44,7 +50,16 @@
                                         :c #js {:d 5}}))
                [:v/ok {:a "str"
                        :b :kw
-                       :c {:d 5}}]))))
+                       :c {:d 5}}])))
+      (testing "js-objects with-prop"
+        (is (= ((v/-> (vjs/prop "a")
+                      (vjs/prop "b")
+                      (vjs/record
+                       {:c (v/string)
+                        :d (v/number)}))
+                (ctx/create :value record-test-data))
+               [:v/ok {:c "str"
+                       :d 5}]))))
     (testing "fails"
       (testing "invalid input"
         (let [result ((vjs/record

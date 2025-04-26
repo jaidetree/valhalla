@@ -23,14 +23,13 @@
   
   Arguments:
   - prop-name - A string pointing to a property like \"currentTarget\"
-  - validator - A subvalidator to apply to the value under the given prop-name
 
    Options:
    - :message - Custom error message function or string
 
-  Returns a validator function that accepts a context and returns a result
-   with the value of the property if successful."
-  [prop-name validator & [opts]]
+  Returns a validator function that accepts a context and returns an updated
+  context if successful."
+  [prop-name & [opts]]
   (fn [{:keys [value] :as context}]
     (let [message (msg-fn (:message opts)
                           (fn [{:keys [value]}]
@@ -38,9 +37,9 @@
                                  ", got" value)))]
       (if (instance? js/Object value)
         (let [prop-value (aget value prop-name)]
-          (validator (-> context
-                         (update :path conj prop-name)
-                         (assoc :value prop-value))))
+          [:v/ctx (-> context
+                      (update :path conj prop-name)
+                      (assoc :value prop-value))])
         (error (message))))))
 
 (defn- record-validators
