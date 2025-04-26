@@ -6,6 +6,21 @@
    [dev.jaide.valhalla.js :as vjs]
    [dev.jaide.valhalla.context :as ctx]))
 
+(deftest prop-test
+  (testing "prop"
+    (testing "passes"
+      (testing "nested data"
+        (is (= ((vjs/prop "features"
+                          (vjs/prop "debug" (v/boolean)))
+                (ctx/create :value js/process))
+               [:v/ok false]))))
+    (testing "fails"
+      (testing "invalid targets"
+        (is (= ((vjs/prop "features"
+                          (vjs/prop "whatever" (v/boolean)))
+                (ctx/create :value js/process))
+               [:v/error "Expected boolean, got nil"]))))))
+
 (deftest record-test
   (testing "record"
     (testing "passes"
@@ -17,7 +32,19 @@
                 (ctx/create :value #js {:a "str" :b :kw :c 5}))
                [:v/ok {:a "str"
                        :b :kw
-                       :c 5}]))))
+                       :c 5}])))
+      (testing "nested js-objects"
+        (is (= ((vjs/record
+                 {:a (v/string)
+                  :b (v/keyword)
+                  :c (vjs/record
+                      {:d (v/number)})})
+                (ctx/create :value #js {:a "str"
+                                        :b :kw
+                                        :c #js {:d 5}}))
+               [:v/ok {:a "str"
+                       :b :kw
+                       :c {:d 5}}]))))
     (testing "fails"
       (testing "invalid input"
         (let [result ((vjs/record
@@ -34,9 +61,9 @@
                         :c (v/number)})
                       (ctx/create :value #js {:a :kw :b 5 :c "str"}))]
           (is (= result
-                 [:v/errors [{:path [:a] :message "Expected string, got :kw"}
-                             {:path [:b] :message "Expected keyword, got 5"}
-                             {:path [:c] :message "Expected number, got \"str\""}]])))))))
+                 [:v/errors [{:path ["a"] :message "Expected string, got :kw"}
+                             {:path ["b"] :message "Expected keyword, got 5"}
+                             {:path ["c"] :message "Expected number, got \"str\""}]])))))))
 
 (deftest object-test
   (testing "object"

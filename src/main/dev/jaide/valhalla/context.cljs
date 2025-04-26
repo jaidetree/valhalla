@@ -63,8 +63,18 @@
   [ctx path]
   (update ctx :path conj path))
 
-(defn- get-in
-  [m ks]
+(defn get-in
+  "Helper function to navigate various cljs and js objects recursively. It is
+  more resilient than the native get-in.
+
+  Throws an error if a data type can't be navigated.
+
+  Arguments:
+  - d - Data to navigate
+  - ks - Vector or strings or keywords to recurse into
+
+  Returns the value at the end of the path"
+  [d ks]
   (->> ks
        (reduce
         (fn [src path]
@@ -73,10 +83,11 @@
             (vector? src) (get src path)
             (list? src)   (nth src path)
             (set? src)    (nth (seq src) path)
+            (instance? js/Object src) (aget src path)
             :else         (throw
                            (js/Error. (str "custom get-in couldn't navigate "
                                            (pr-str src) " at " (pr-str path))))))
-        m)))
+        d)))
 
 (defn replace-path
   ([ctx path]

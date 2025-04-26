@@ -8,14 +8,40 @@
 
 (defn replace-path
   [ctx idx path]
-  (let [prev-path (vec (take idx (:path ctx)))
+  (let [path (if (keyword? path)
+               (name path)
+               path)
+        prev-path (vec (take idx (:path ctx)))
         new-path (conj prev-path path)]
     (-> ctx
         (assoc :path new-path)
-        (assoc :value (aget (:input ctx)
-                            (if (keyword? path)
-                              (name path)
-                              path))))))
+        (assoc :value (ctx/get-in ctx (cons :input new-path))))))
+
+(defn prop
+  "Reads a prop from the input but doesn't parse into it. Useful for navigating
+  nested js objects where the containing objects should be ignored.
+  
+  Arguments:
+  - prop-name - A string pointing to a property like \"currentTarget\"
+  - validator - A subvalidator to apply to the value under the given prop-name
+
+   Options:
+   - :message - Custom error message function or string
+
+  Returns a validator function that accepts a context and returns a result
+   with the value of the property if successful."
+  [prop-name validator & [opts]]
+  (fn [{:keys [value] :as context}]
+    (let [message (msg-fn (:message opts)
+                          (fn [{:keys [value]}]
+                            (str "Expected to read js prop " (pr-str prop-name)
+                                 ", got" value)))]
+      (if (instance? js/Object value)
+        (let [prop-value (aget value prop-name)]
+          (validator (-> context
+                         (update :path conj prop-name)
+                         (assoc :value prop-value))))
+        (error (message))))))
 
 (defn- record-validators
   [& {:keys [context validator-kvs path-index]}]
