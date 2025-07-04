@@ -812,7 +812,7 @@
   with the original value if it's an instance of the specified class."
   ([class-fn] (instance class-fn {}))
   ([class-fn opts]
-   (cc/assert (js-fn? class-fn) "Class function required")
+   (cc/assert (fn? class-fn) "Class function required")
    (fn [{:keys [value] :as context}]
      (let [message (msg-fn (:message opts)
                            (fn [{:keys [value]}]

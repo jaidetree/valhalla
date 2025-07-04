@@ -489,6 +489,20 @@
                              :b 5
                              :c 45.5}]))))
 
+      (testing "supports string keys"
+        (let [res ((v/record
+                    {"a" (v/string)
+                     "b" (v/number)
+                     "c" (v/string->number)})
+                   (ctx/create
+                    :value {"a" "str"
+                            "b" 5
+                            "d" :kw
+                            "c" "45.5"}))]
+          (is (= res [:v/ok {"a" "str"
+                             "b" 5
+                             "c" 45.5}]))))
+
       (testing "nested records"
         (let [res ((v/record
                     {:a (v/record {:b (v/string)})})
